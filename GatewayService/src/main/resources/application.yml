@@ -8,13 +8,13 @@ spring:
     gateway:
       routes:
         - id: user-service
-          uri: http://localhost:8081/
+          uri: http://localhost:8001/
           predicates:
-            - Path=/user-service/**
+            - Path=/api/user-service/**
         - id: board-service
-          uri: http://localhost:8082/
+          uri: http://localhost:8002/
           predicates:
-            - Path=/board-service/**
+            - Path=/api/board-service/**
 
 eureka:
   client:
