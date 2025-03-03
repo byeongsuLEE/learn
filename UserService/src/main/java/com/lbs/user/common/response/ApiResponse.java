@@ -60,7 +60,7 @@ public class ApiResponse<T> {
      * 요청 실패 시 에러 반환 메서드
      * @ 작성자   : 이병수
      * @ 작성일   : 2025-03-02
-     * @ 설명     :
+     * @ 설명     : 요청 실패 시 에러 반환 메서드
      * @param errorCode
      * @return
      * @param
