@@ -3,22 +3,44 @@ server:
 
 spring:
   application:
-    name: apigateway-service
+    name: gateway-service
   cloud:
     gateway:
+      default-filters:
+        - name: GlobalFilter
+          args:
+            baseMessage: Spring Cloud Gateway GlobalFilter
+            preLogger: true
+            postLogger: true
       routes:
         - id: user-service
-          uri: http://localhost:8081/
+#          uri: http://localhost:8081/
+          uri: lb://USER-SERVICE      # discovery에 등록된 app name
           predicates:
-            - Path=/user-service/**
+            - Path=/api/user-service/**
+          filters:
+            - CustomFilter
+            - name: LoggerFilter
+              args:
+                baseMessage: Hi Logging filter
+                preLogger: true
+                postLogger: true
+#            - AddRequestHeader=user-request, user-request-header2   # 띄어쓰기 하나 하나가 중요하다. 주의!
+#            - AddResponseHeader=user-response, user-response-header2
         - id: board-service
           uri: http://localhost:8082/
           predicates:
-            - Path=/board-service/**
+            - Path=/api/board-service/**
+          filters:
+            - AddRequestHeader=board-request, board-request-header2   # 띄어쓰기 하나 하나가 중요하다. 주의!
+            - AddResponseHeader=board-response, board-response-header2
 
+
+
+## 유레카 서버에 현재 프로젝트를 등록
 eureka:
   client:
-    register-with-eureka: false
-    fetch-registry: false
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka
