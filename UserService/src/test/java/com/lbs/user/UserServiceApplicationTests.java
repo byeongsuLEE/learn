@@ -1,4 +1,4 @@
-package com.lbs.userservice;
+package com.lbs.user;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
