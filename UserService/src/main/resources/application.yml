@@ -2,12 +2,14 @@ spring:
   application:
     name: learn-user
   config:
-#    import: optional:configserver:http://evil55.shop:8888
+    import: optional:configserver:http://evil55.shop:8888
+  kafka:
+    bootstrap-servers: evil55.shop:9092
 #    kafka:
 #      bootstrap-servers: evil55.shop:19092
-    import: optional:configserver:http://localhost:8888
-  kafka:
-    bootstrap-servers: 34.64.155.194:9092
+#    import: optional:configserver:http://localhost:8888
+
+
 
 
 
