@@ -1,9 +1,6 @@
 package com.lbs.user.infrastructure.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 /**
  * 작성자  : 이병수
@@ -15,8 +12,9 @@ import jakarta.persistence.Table;
 @Entity
 public class UserEntity {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id ;
-
+    private String email;
+    private String password;
 
 }
