@@ -1,14 +1,14 @@
-package com.lbs.user.presentation.controller;
+package com.lbs.user.controller;
 
 import com.lbs.user.common.response.ApiResponse;
+import com.lbs.user.dto.request.UserJoinRequestDto;
+import com.lbs.user.infrastructure.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,8 +19,7 @@ import static com.lbs.user.common.response.ApiResponse.success;
  * 날짜    : 2025-03-02
  * 풀이방법
  **/
-
-
+@RefreshScope
 @RestController
 @RequestMapping
 @Slf4j
@@ -28,7 +27,10 @@ import static com.lbs.user.common.response.ApiResponse.success;
 public class UserController {
 
     private final Environment env;
+//    private final UserService userService;
 
+    @Value("${yml-name}")
+    private String configFileName ;
     @GetMapping("/welcome")
     public ResponseEntity<ApiResponse<String>> gatewayConnectTest (){
 
@@ -51,7 +53,18 @@ public class UserController {
         log.info("customfilter check ");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK,
-                        String.format("서버 포트는 : %s", env.getProperty("local.server.port"))));
+                        String.format("서버 포트는 :"+ env.getProperty("local.server.port"))
+                                + "\n config 파일 이름은 :  = " + configFileName
+
+                ));
+
+    }
+
+    @PostMapping("/join")
+    public ResponseEntity<ApiResponse<String>> joinUser (UserJoinRequestDto user){
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,"가입성공"));
 
     }
 
