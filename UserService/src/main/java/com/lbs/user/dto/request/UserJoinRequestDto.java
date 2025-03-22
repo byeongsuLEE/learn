@@ -3,9 +3,7 @@ package com.lbs.user.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -15,11 +13,13 @@ import java.time.LocalDateTime;
  * 풀이방법
  **/
 
-
-@Builder
 @Getter
 @Setter
+@ToString
+@NoArgsConstructor
 public class UserJoinRequestDto {
+
+
 
     @NotNull(message ="이메일은 빈 값이 될 수 없습니다.")
     @Size(min = 2 , message = "두 글자 이상 작성해주세요")

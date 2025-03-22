@@ -3,8 +3,8 @@ package com.lbs.user.dto.response;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -16,10 +16,10 @@ import java.time.LocalDateTime;
  * 풀이방법
  **/
 
-@Builder
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class UserJoinResponseDto {
     private String email;
     private String password;
