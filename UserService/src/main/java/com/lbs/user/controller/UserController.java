@@ -1,7 +1,11 @@
 package com.lbs.user.controller;
 
+import com.lbs.user.common.mapper.UserMapper;
+import com.lbs.user.common.mapper.UserMapperImpl;
 import com.lbs.user.common.response.ApiResponse;
+import com.lbs.user.domain.User;
 import com.lbs.user.dto.request.UserJoinRequestDto;
+import com.lbs.user.dto.response.UserJoinResponseDto;
 import com.lbs.user.infrastructure.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +32,8 @@ public class UserController {
 
     private final Environment env;
 //    private final UserService userService;
+    private final UserService userService ;
+    private final UserMapper  userMapper;
 
     @Value("${yml-name}")
     private String configFileName ;
@@ -61,10 +67,16 @@ public class UserController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<ApiResponse<String>> joinUser (UserJoinRequestDto user){
+    public ResponseEntity<ApiResponse<UserJoinResponseDto>> joinUser (@RequestBody UserJoinRequestDto userJoinRequestDto){
 
+
+
+        User user = userMapper.userJoinDtoToDomain(userJoinRequestDto);
+        User savedUser = userService.joinUser(user);
+        UserJoinResponseDto userJoinResponseDto = userMapper.userToJoinResponseDto(savedUser);
+        log.info(user.toString());
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(HttpStatus.OK,"가입성공"));
+                .body(ApiResponse.success(HttpStatus.OK,"가입성공",userJoinResponseDto));
 
     }
 
