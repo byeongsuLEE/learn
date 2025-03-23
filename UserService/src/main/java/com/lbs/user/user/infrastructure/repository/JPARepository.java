@@ -1,7 +1,6 @@
-package com.lbs.user.infrastructure.repository;
+package com.lbs.user.user.infrastructure.repository;
 
-import com.lbs.user.domain.User;
-import com.lbs.user.infrastructure.entity.UserEntity;
+import com.lbs.user.user.infrastructure.entity.UserEntity;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

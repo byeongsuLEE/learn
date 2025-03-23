@@ -1,6 +1,6 @@
-package com.lbs.user.infrastructure.repository;
+package com.lbs.user.user.infrastructure.repository;
 
-import com.lbs.user.infrastructure.entity.UserEntity;
+import com.lbs.user.user.infrastructure.entity.UserEntity;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
