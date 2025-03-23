@@ -1,33 +1,40 @@
-package com.lbs.user.infrastructure.service;
+package com.lbs.user.user.service;
 
-import com.lbs.user.common.mapper.UserMapper;
-import com.lbs.user.domain.User;
-import com.lbs.user.infrastructure.entity.UserEntity;
-import com.lbs.user.infrastructure.repository.JPARepository;
-import com.lbs.user.infrastructure.repository.UserRepository;
+import com.lbs.user.user.common.mapper.UserMapper;
+import com.lbs.user.user.domain.User;
+import com.lbs.user.user.infrastructure.entity.UserEntity;
+import com.lbs.user.user.infrastructure.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
  * 작성자  : 이병수
  * 날짜    : 2025-03-21
  * 풀이방법
- *
  **/
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     // 나중에 db가 두개이상이라면 @Qulifier("jpaRepository") 붙이기
     private final UserRepository userRepository;
-    private final UserMapper userMapper ;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public User joinUser(User user) {
+        userPasswordEncoding(user);
         UserEntity userEntity = userMapper.userToEntity(user);
         UserEntity saveUserEntity = userRepository.save(userEntity);
         user = userMapper.userEntityToUser(saveUserEntity);
+        return user;
+    }
+
+    private User userPasswordEncoding(User user) {
+        String encodedPassword = passwordEncoder.encode(user.getPassword());
+        user.encodingPassword(encodedPassword);
         return user;
     }
 

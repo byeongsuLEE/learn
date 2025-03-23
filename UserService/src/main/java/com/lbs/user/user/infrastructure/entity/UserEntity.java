@@ -1,4 +1,4 @@
-package com.lbs.user.infrastructure.entity;
+package com.lbs.user.user.infrastructure.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

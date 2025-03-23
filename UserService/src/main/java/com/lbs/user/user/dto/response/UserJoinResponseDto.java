@@ -1,9 +1,12 @@
-package com.lbs.user.dto.request;
+package com.lbs.user.user.dto.response;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -17,18 +20,8 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @NoArgsConstructor
-public class UserJoinRequestDto {
-
-
-
-    @NotNull(message ="이메일은 빈 값이 될 수 없습니다.")
-    @Size(min = 2 , message = "두 글자 이상 작성해주세요")
-    @Email
+public class UserJoinResponseDto {
     private String email;
-
-    @NotNull(message = "비밀번호를 입력 해주세요")
-    @Size(min =4,message = "4글자 이상 비밀번호를 입력해주세요")
     private String password;
-
     private LocalDateTime joinDate;
 }
