@@ -1,10 +1,10 @@
 package com.lbs.user.user.controller;
 
-import com.lbs.user.user.common.mapper.UserMapper;
-import com.lbs.user.user.common.response.ApiResponse;
+import com.lbs.user.user.dto.response.UserResponseDto;
+import com.lbs.user.user.mapper.UserMapper;
+import com.lbs.user.common.response.ApiResponse;
 import com.lbs.user.user.domain.User;
 import com.lbs.user.user.dto.request.UserJoinRequestDto;
-import com.lbs.user.user.dto.response.UserJoinResponseDto;
 import com.lbs.user.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.lbs.user.user.common.response.ApiResponse.success;
+import static com.lbs.user.common.response.ApiResponse.success;
 
 /**
  * 작성자  : 이병수
@@ -30,7 +30,6 @@ import static com.lbs.user.user.common.response.ApiResponse.success;
 public class UserController {
 
     private final Environment env;
-//    private final UserService userService;
     private final UserService userService ;
     private final UserMapper  userMapper;
 
@@ -66,17 +65,21 @@ public class UserController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<ApiResponse<UserJoinResponseDto>> joinUser (@RequestBody UserJoinRequestDto userJoinRequestDto){
-
-
-
+    public ResponseEntity<ApiResponse<UserResponseDto>> joinUser (@RequestBody UserJoinRequestDto userJoinRequestDto){
         User user = userMapper.userJoinDtoToDomain(userJoinRequestDto);
         User savedUser = userService.joinUser(user);
-        UserJoinResponseDto userJoinResponseDto = userMapper.userToJoinResponseDto(savedUser);
+        UserResponseDto userResponseDto = userMapper.userDomainToUserDto(savedUser);
         log.info(user.toString());
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(HttpStatus.OK,"가입성공",userJoinResponseDto));
+                .body(ApiResponse.success(HttpStatus.OK,"가입성공",userResponseDto));
+    }
 
+    @GetMapping("/info/{id}")
+    public ResponseEntity<ApiResponse<UserResponseDto>> userInfo(@PathVariable Long id){
+        User user = userService.readUser(id);
+        UserResponseDto userResponseDto = userMapper.userDomainToUserDto(user);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,userResponseDto));
     }
 
 }
