@@ -6,7 +6,7 @@ import com.lbs.user.user.domain.User;
 
 public interface UserService {
     User joinUser(User user);
-    User readUser(String id);
+    User readUser(Long id);
     User updateUser(User user);
     User deleteUser(String id);
 }

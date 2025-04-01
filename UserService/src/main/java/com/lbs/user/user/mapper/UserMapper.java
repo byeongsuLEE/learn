@@ -1,7 +1,7 @@
-package com.lbs.user.user.common.mapper;
+package com.lbs.user.user.mapper;
 
 import com.lbs.user.user.domain.User;
-import com.lbs.user.user.dto.response.UserJoinResponseDto;
+import com.lbs.user.user.dto.response.UserResponseDto;
 import com.lbs.user.user.infrastructure.entity.UserEntity;
 import com.lbs.user.user.dto.request.UserJoinRequestDto;
 import org.mapstruct.Mapper;
@@ -29,7 +29,7 @@ public interface UserMapper {
     }
 
     //Domain ->response dto
-    UserJoinResponseDto userToJoinResponseDto(User user);
+    UserResponseDto userDomainToUserDto(User user);
 
     // user -> entity
     @Mapping(target = "id", ignore = true)

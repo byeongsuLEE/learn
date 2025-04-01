@@ -1,11 +1,10 @@
 package com.lbs.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lbs.user.user.common.mapper.UserMapper;
+import com.lbs.user.user.mapper.UserMapper;
 import com.lbs.user.user.controller.UserController;
 import com.lbs.user.user.domain.User;
 import com.lbs.user.user.dto.request.UserJoinRequestDto;
-import com.lbs.user.user.dto.response.UserJoinResponseDto;
 import com.lbs.user.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +70,6 @@ public class UserControllerTest {
 
         UserJoinResponseDto userJoinResponseDto = UserJoinResponseDto.builder()
                 .email("test")
-                .password("1234")
                 .joinDate(now)
                 .build();
         //when

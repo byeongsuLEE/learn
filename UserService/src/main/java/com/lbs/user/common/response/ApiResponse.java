@@ -1,4 +1,4 @@
-package com.lbs.user.user.common.response;
+package com.lbs.user.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -56,14 +56,17 @@ public class ApiResponse<T> {
 
     /**
      * 요청 실패 시 에러 반환 메서드
+     *
+     * @param
+     * @param status
+     * @param message
+     * @param errorCode
+     * @return
      * @ 작성자   : 이병수
      * @ 작성일   : 2025-03-02
      * @ 설명     : 요청 실패 시 에러 반환 메서드
-     * @param errorCode
-     * @return
-     * @param
      */
-    public static <T> ApiResponse<T> error(ErrorCode errorCode) {
+    public static <T> ApiResponse<T> error(HttpStatus status, String message, ErrorCode errorCode) {
         return new ApiResponse<T>(errorCode.getStatus(),errorCode.getMessage(),null);
     }
 
