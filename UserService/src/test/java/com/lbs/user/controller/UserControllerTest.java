@@ -50,6 +50,7 @@ public class UserControllerTest {
     @MockBean
     private UserMapper userMapper;
 
+]
 
 
     @Test
