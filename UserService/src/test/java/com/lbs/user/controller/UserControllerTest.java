@@ -1,6 +1,7 @@
 package com.lbs.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lbs.user.user.dto.response.UserInfoResponseDto;
 import com.lbs.user.user.mapper.UserMapper;
 import com.lbs.user.user.controller.UserController;
 import com.lbs.user.user.domain.User;
@@ -50,7 +51,7 @@ public class UserControllerTest {
     @MockBean
     private UserMapper userMapper;
 
-]
+
 
 
     @Test
@@ -69,7 +70,7 @@ public class UserControllerTest {
                 .joinDate(now)
                 .build();
 
-        UserJoinResponseDto userJoinResponseDto = UserJoinResponseDto.builder()
+        UserInfoResponseDto userJoinResponseDto = UserInfoResponseDto.builder()
                 .email("test")
                 .joinDate(now)
                 .build();
@@ -77,7 +78,7 @@ public class UserControllerTest {
         // mock 동작 정의  = Mock 객체들의 동작을 미리 정의해두면, 컨트롤러 테스트할 때 진짜 로직이 실행되지 않고 가짜(mock) 응답이 리턴돼.
         given(userMapper.userJoinDtoToDomain(any())).willReturn(user);
         given(userService.joinUser(any())).willReturn(user);
-        given(userMapper.userToJoinResponseDto(any())).willReturn(userJoinResponseDto);
+//        given(userMapper.userDomainToUserDto(any())).willReturn(userJoinResponseDto);
 
         //then
         mockMvc.perform(

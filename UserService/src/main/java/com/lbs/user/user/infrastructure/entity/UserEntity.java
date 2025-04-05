@@ -1,10 +1,7 @@
 package com.lbs.user.user.infrastructure.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +16,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 기본 생성자
 @AllArgsConstructor
 @Getter
-public class UserEntity {
+@Setter
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "type")
+public class UserEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id ;
@@ -32,4 +32,8 @@ public class UserEntity {
 
     @Column(nullable = false)
     private LocalDateTime joinDate;
+
+    @Transient
+    private String one;
+
 }
