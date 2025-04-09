@@ -1,5 +1,6 @@
 package com.lbs.user.user.infrastructure.entity;
 
+import com.lbs.user.user.domain.Address;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,5 +36,8 @@ public class UserEntity extends BaseEntity {
 
     @Transient
     private String one;
+
+    @Embedded
+    Address address;
 
 }

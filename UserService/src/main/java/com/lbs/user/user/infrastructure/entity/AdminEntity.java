@@ -14,11 +14,11 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@DiscriminatorValue("Admin")
 public class AdminEntity extends UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String str;
 
 }

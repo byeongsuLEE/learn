@@ -74,3 +74,13 @@ management:
 #server:
 
 #  port: 8081
+
+
+---
+#spring:
+#  config:
+#    activate:
+#      on-profile: local
+#  jpa:
+#    hibernate:
+#      ddl-auto: create
