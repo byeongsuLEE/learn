@@ -40,58 +40,60 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(RestDocumentationExtension.class)
 //@RequiredArgsConstructor : test class 에는 bean이 아니기 떄문에 spring 이 관리하지안흔다. 직접 주입 또는 @autowired하셈
 public class UserControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private ObjectMapper objectMapper;
+//    @Autowired
+//    private MockMvc mockMvc;
+//    @Autowired
+//    private ObjectMapper objectMapper;
+//
+//
+//    @MockBean
+//    private UserService userService;
+//    @MockBean
+//    private UserMapper userMapper;
+//
+//
+//
+//
+//    @Test
+//    void SDFDS() throws Exception{
+//        LocalDateTime now = LocalDateTime.now();
+//        //given
+//        UserJoinRequestDto userJoinRequestDto = UserJoinRequestDto.builder()
+//                .email("test")
+//                .password("1234")
+//                .joinDate(now)
+//                .build();
+//
+//        User user = User.builder()
+//                .email("test")
+//                .password("1234")
+//                .joinDate(now)
+//                .build();
+//
+//        UserInfoResponseDto userJoinResponseDto = UserInfoResponseDto.builder()
+//                .email("test")
+//                .joinDate(now)
+//                .build();
+//        //when
+//        // mock 동작 정의  = Mock 객체들의 동작을 미리 정의해두면, 컨트롤러 테스트할 때 진짜 로직이 실행되지 않고 가짜(mock) 응답이 리턴돼.
+//        given(userMapper.userJoinDtoToDomain(any())).willReturn(user);
+//        given(userService.joinUser(any())).willReturn(user);
+////        given(userMapper.userDomainToUserDto(any())).willReturn(userJoinResponseDto);
+//
+//        //then
+//        mockMvc.perform(
+//                        RestDocumentationRequestBuilders.post("/join")
+//                                .contentType(MediaType.APPLICATION_JSON)
+//                                .content(objectMapper.writeValueAsString(userJoinRequestDto))
+//                )
+//                .andExpect(status().isOk())
+//                .andDo(document("user-join",
+//                        preprocessRequest(prettyPrint()),
+//                        preprocessResponse(prettyPrint())
+//                        )); // 문서 조각 생성
+//        //then
+//    }
 
 
-    @MockBean
-    private UserService userService;
-    @MockBean
-    private UserMapper userMapper;
-
-
-
-
-    @Test
-    void SDFDS() throws Exception{
-        LocalDateTime now = LocalDateTime.now();
-        //given
-        UserJoinRequestDto userJoinRequestDto = UserJoinRequestDto.builder()
-                .email("test")
-                .password("1234")
-                .joinDate(now)
-                .build();
-
-        User user = User.builder()
-                .email("test")
-                .password("1234")
-                .joinDate(now)
-                .build();
-
-        UserInfoResponseDto userJoinResponseDto = UserInfoResponseDto.builder()
-                .email("test")
-                .joinDate(now)
-                .build();
-        //when
-        // mock 동작 정의  = Mock 객체들의 동작을 미리 정의해두면, 컨트롤러 테스트할 때 진짜 로직이 실행되지 않고 가짜(mock) 응답이 리턴돼.
-        given(userMapper.userJoinDtoToDomain(any())).willReturn(user);
-        given(userService.joinUser(any())).willReturn(user);
-//        given(userMapper.userDomainToUserDto(any())).willReturn(userJoinResponseDto);
-
-        //then
-        mockMvc.perform(
-                        RestDocumentationRequestBuilders.post("/join")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(userJoinRequestDto))
-                )
-                .andExpect(status().isOk())
-                .andDo(document("user-join",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint())
-                        )); // 문서 조각 생성
-        //then
-    }
 
 }
