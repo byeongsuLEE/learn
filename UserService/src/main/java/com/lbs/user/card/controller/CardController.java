@@ -2,6 +2,7 @@ package com.lbs.user.card.controller;
 
 import com.lbs.user.card.dto.request.CreateCardRequestDto;
 import com.lbs.user.card.dto.response.CardResponseDto;
+import com.lbs.user.card.service.CardService;
 import com.lbs.user.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,9 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/card")
 @RequiredArgsConstructor
-public class CardController {
 
-    private final CardService cardService;
+
+public class CardController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CardResponseDto>> createCard (CreateCardRequestDto createCardRequestDto){
