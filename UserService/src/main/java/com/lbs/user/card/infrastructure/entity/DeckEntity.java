@@ -1,6 +1,5 @@
 package com.lbs.user.card.infrastructure.entity;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.lbs.user.user.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -18,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "decks")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Deck extends BaseEntity {
+public class DeckEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,16 +26,17 @@ public class Deck extends BaseEntity {
     private String tag;
     private String category;
 
+
     @Builder
-    private Deck( String title, String description, String tag, String category) {
+    private DeckEntity(String title, String description, String tag, String category) {
         this.title = title;
         this.description = description;
         this.tag = tag;
         this.category = category;
     }
 
-    public static Deck createDeck(String title, String description, String tag, String category){
-        return Deck.builder()
+    public static DeckEntity createDeck(String title, String description, String tag, String category){
+        return DeckEntity.builder()
                 .title(title)
                 .description(description)
                 .tag(tag)

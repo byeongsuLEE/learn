@@ -83,4 +83,4 @@ management:
 #      on-profile: local
 #  jpa:
 #    hibernate:
-#      ddl-auto: create
+#      ddl-auto: createDeck
