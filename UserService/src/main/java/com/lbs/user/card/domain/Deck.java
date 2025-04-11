@@ -21,6 +21,7 @@ public class Deck {
      String desc;
      String category;
      String tag;
+     AuditInfo auditInfo;
 
     private Deck(Long id, String title, String desc, String category, String tag) {
          this.id = id;
@@ -29,6 +30,16 @@ public class Deck {
          this.category = category;
          this.tag = tag;
      }
+
+
+    private Deck(Long id, String title, String desc, String category, String tag, AuditInfo auditInfo) {
+        this.id = id;
+        this.title = title;
+        this.desc = desc;
+        this.category = category;
+        this.tag = tag;
+        this.auditInfo = auditInfo;
+    }
 
     private Deck(String title, String desc, String category, String tag) {
         this.title = title;
@@ -53,8 +64,16 @@ public class Deck {
          return new Deck(title, desc, category, tag);
      }
 
+    public static Deck createDeck(Long id , String title, String desc, String category, String tag, AuditInfo auditInfo) {
+        return new Deck(id, title, desc, category, tag,auditInfo);
+    }
+
      public static Deck infoDeck(Long id, String title, String desc, String category, String tag) {
          return new Deck(id, title, desc, category, tag);
+     }
+
+     public void addAuditInfo(AuditInfo auditInfo) {
+        this.auditInfo = auditInfo;
      }
 
 }

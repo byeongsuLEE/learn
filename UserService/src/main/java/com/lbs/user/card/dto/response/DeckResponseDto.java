@@ -1,5 +1,6 @@
 package com.lbs.user.card.dto.response;
 
+import com.lbs.user.card.domain.AuditInfo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,9 +25,6 @@ public class DeckResponseDto {
     private String desc;
     private String category;
     private String tag;
-
-    private String createdBy;
-    private LocalDateTime createdDate;
-    private String lastModifiedBy;
-    private LocalDateTime lastModifiedDate;
+    private AuditInfo auditInfo;
+;
 }
