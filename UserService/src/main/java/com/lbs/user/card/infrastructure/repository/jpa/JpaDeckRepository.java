@@ -1,6 +1,7 @@
-package com.lbs.user.card.infrastructure.repository;
+package com.lbs.user.card.infrastructure.repository.jpa;
 
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
+import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,6 @@ import java.util.Optional;
 
 @Repository
 @Qualifier("jpaDeckRepository")
-public interface JpaDeckRepository extends JpaRepository<DeckEntity, Long>,DeckRepository {
- Optional<DeckEntity> findById(Long id);
- DeckEntity save(DeckEntity deckEntity);
+public interface JpaDeckRepository extends JpaRepository<DeckEntity, Long> {
+
 }
