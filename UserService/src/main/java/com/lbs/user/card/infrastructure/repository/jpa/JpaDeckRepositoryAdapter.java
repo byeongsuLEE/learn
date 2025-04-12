@@ -8,6 +8,8 @@ import com.lbs.user.card.mapper.DeckMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -24,10 +26,19 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
     private final JpaDeckRepository jpaDeckRepository;
 
     @Override
-    public Optional<DeckEntity> findById(Long id) {
+    public List<Deck> findBy() {
+        List<DeckEntity> deckEntityList = jpaDeckRepository.findAll();
+        Deck deck = deckMapper.entityToDomain(deckEntityList.get(0));
+        List<Deck> decks = deckEntityList.stream().map(deckMapper::entityToDomain).toList();
+        return decks;
+    }
 
 
-        return Optional.empty();
+    @Override
+    public Optional<Deck> findById(Long id) {
+        Optional<Deck> deck1 = jpaDeckRepository.findById(id).map(deckMapper::entityToDomain);
+
+        return  deck1;
     }
 
     @Override
@@ -46,4 +57,6 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
     public Deck delete(Deck deck) {
         return null;
     }
+
+
 }
