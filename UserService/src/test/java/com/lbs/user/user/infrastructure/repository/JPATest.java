@@ -1,5 +1,6 @@
 package com.lbs.user.user.infrastructure.repository;
 
+import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.user.infrastructure.entity.UserEntity;
 import com.lbs.user.user.domain.Address;
 import jakarta.persistence.EntityManager;
@@ -21,9 +22,21 @@ public class JPATest {
     @PersistenceContext
     private EntityManager em;
 
+//    @Test
+//    @Transactional
+//    void update_엔티티업데이트실험(){
+//
+//        DeckEntity deckEntity = em.find(DeckEntity.class, 1L);
+//        deckEntity.setCategory("dsfsdfds");
+//
+//        em.flush();
+//        em.clear();
+//    }
+
     @Test
     @Transactional
     void entityManager_동작확인() {
+
         UserEntity  result = em.createQuery("SELECT u FROM UserEntity u WHERE u.id = :id",UserEntity.class)
                 .setParameter("id",1L)
                 .getSingleResult();

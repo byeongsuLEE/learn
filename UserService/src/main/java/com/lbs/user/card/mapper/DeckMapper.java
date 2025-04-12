@@ -4,6 +4,7 @@ import com.lbs.user.card.domain.AuditInfo;
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.card.dto.request.CreateCardRequestDto;
 import com.lbs.user.card.dto.request.CreateDeckRequestDto;
+import com.lbs.user.card.dto.request.DeckRequestDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.common.mapper.AuditInfoMapper;
@@ -36,6 +37,18 @@ public interface DeckMapper {
         );
     }
 
+   default Deck updateDtoToDomain(DeckRequestDto dto){
+        return Deck.createDeck(
+                dto.getId(),
+                dto.getTitle(),
+                dto.getDesc(),
+                dto.getCategory(),
+                dto.getTag(),
+                dto.getAuditInfo()
+        );
+   }
+
+
     //Domain -> Entity
     @Mapping(source = "desc" , target = "description")
     DeckEntity domainToEntity(Deck deck);
@@ -51,9 +64,10 @@ public interface DeckMapper {
     }
 
     //Entity -> ResponseDto
-    DeckResponseDto entityToResponseDto(DeckEntity deckEntity);
+//    DeckResponseDto entityToResponseDto(DeckEntity deckEntity);
 
     DeckResponseDto domainToResponseDto(Deck savedDeck);
+
 
 
 //    @Named("entityToAuditInfo")

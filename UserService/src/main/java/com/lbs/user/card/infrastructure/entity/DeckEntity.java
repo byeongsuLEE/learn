@@ -1,11 +1,9 @@
 package com.lbs.user.card.infrastructure.entity;
 
+import com.lbs.user.card.domain.Deck;
 import com.lbs.user.user.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * 작성자  : lbs
@@ -42,6 +40,14 @@ public class DeckEntity extends BaseEntity {
                 .tag(tag)
                 .category(category)
                 .build();
+    }
+
+    public void updateDeck(Deck deck){
+        this.title = deck.getTitle();
+        this.category = deck.getCategory();
+        this.tag = deck.getTag();
+        this.description= deck.getCategory();
+
     }
 
 }
