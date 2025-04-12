@@ -42,8 +42,9 @@ public class DeckServiceImpl implements DeckService {
     }
 
     @Override
-    public Deck updateDeck(Deck card) {
-        return null;
+    public Deck updateDeck(Deck deck) {
+
+        return deckRepository.update(deck);
     }
 
     @Override

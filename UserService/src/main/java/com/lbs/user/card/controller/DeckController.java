@@ -2,6 +2,7 @@ package com.lbs.user.card.controller;
 
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.card.dto.request.CreateDeckRequestDto;
+import com.lbs.user.card.dto.request.DeckRequestDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.mapper.DeckMapper;
 import com.lbs.user.card.service.DeckService;
@@ -54,4 +55,14 @@ public class DeckController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK, deckResponseDto));
     }
+
+    @PatchMapping ("/update")
+    public ResponseEntity<ApiResponse<DeckResponseDto>> updateDeck(@RequestBody DeckRequestDto deckRequestDto){
+        Deck deck = deckMapper.updateDtoToDomain(deckRequestDto);
+        Deck updateDeck = deckService.updateDeck(deck);
+        DeckResponseDto deckResponseDto = deckMapper.domainToResponseDto(updateDeck);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,deckResponseDto));
+    }
 }
+

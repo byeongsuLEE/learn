@@ -7,6 +7,7 @@ import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.card.mapper.DeckMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Transactional
 public class JpaDeckRepositoryAdapter implements DeckRepository {
 
     private final DeckMapper deckMapper;
@@ -50,7 +52,11 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
 
     @Override
     public Deck update(Deck deck) {
-        return null;
+        DeckEntity deckEntity =  jpaDeckRepository.findById(deck.getId()).orElse(null);
+        if(deckEntity == null) return null;
+        deckEntity.updateDeck(deck);
+        Deck updatedDeck = deckMapper.entityToDomain(deckEntity);
+        return updatedDeck;
     }
 
     @Override
