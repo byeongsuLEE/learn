@@ -28,6 +28,13 @@ public class AllExceptionHandler {
                 .body(ApiResponse.error(errorCode.getStatus(), errorCode.getMessage(),errorCode));
     }
 
+    @ExceptionHandler(DeckNotFoundException.class)
+    public ResponseEntity<ApiResponse<String>> handleDeckNotFoundException(DeckNotFoundException deckNotFoundException) {
+        ErrorCode errorCode = deckNotFoundException.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.error(errorCode.getStatus(), errorCode.getMessage(),errorCode));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<String>> handleException(RuntimeException runtimeException) {
         ErrorCode errorCode = ErrorCode.RuntimeException_ERROR;
