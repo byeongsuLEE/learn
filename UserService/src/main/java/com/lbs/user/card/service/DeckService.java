@@ -8,7 +8,7 @@ public interface DeckService {
     Deck saveDeck(Deck card);
     Deck readDeck(Long id);
     Deck updateDeck(Deck card);
-    Deck deleteDeck(Long id);
+    Long deleteDeck(Long id);
 
     List<Deck> readAllDecks();
 }

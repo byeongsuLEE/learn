@@ -48,7 +48,7 @@ public class DeckServiceImpl implements DeckService {
     }
 
     @Override
-    public Deck deleteDeck(Long id) {
-        return null;
+    public Long deleteDeck(Long id) {
+        return deckRepository.delete(id);
     }
 }

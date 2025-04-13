@@ -1,7 +1,6 @@
 package com.lbs.user.card.infrastructure.repository.jpa;
 
 import com.lbs.user.card.domain.Deck;
-import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.card.mapper.DeckMapper;
@@ -9,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,8 +58,10 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
     }
 
     @Override
-    public Deck delete(Deck deck) {
-        return null;
+    public Long delete(Long id ) {
+        jpaDeckRepository.deleteById(id);
+        return id;
+
     }
 
 
