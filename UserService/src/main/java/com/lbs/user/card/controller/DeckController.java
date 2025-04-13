@@ -64,5 +64,13 @@ public class DeckController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK,deckResponseDto));
     }
+
+    @DeleteMapping ("/{id}/delete")
+    public  ResponseEntity<ApiResponse<Long>> deleteDeck(@PathVariable("id") Long id){
+        deckService.deleteDeck(id);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,id + "제거가 완료되었습니다",id));
+    }
 }
 
