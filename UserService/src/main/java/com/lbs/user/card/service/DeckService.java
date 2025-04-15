@@ -1,6 +1,8 @@
 package com.lbs.user.card.service;
 
+import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.dto.request.CreateCardRequestDto;
 
 import java.util.List;
 
@@ -11,4 +13,6 @@ public interface DeckService {
     Long deleteDeck(Long id);
 
     List<Deck> readAllDecks();
+
+    Card createCard(Card card);
 }

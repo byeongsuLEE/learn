@@ -1,9 +1,14 @@
 package com.lbs.user.card.infrastructure.repository.jpa;
 
+import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.infrastructure.entity.CardEntity;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
+import com.lbs.user.card.mapper.CardMapper;
 import com.lbs.user.card.mapper.DeckMapper;
+import com.lbs.user.common.exception.DeckNotFoundException;
+import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +27,9 @@ import java.util.Optional;
 @Transactional
 public class JpaDeckRepositoryAdapter implements DeckRepository {
 
+
     private final DeckMapper deckMapper;
+    private final CardMapper cardMapper;
     private final JpaDeckRepository jpaDeckRepository;
 
     @Override
@@ -62,6 +69,20 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
         jpaDeckRepository.deleteById(id);
         return id;
 
+    }
+
+    @Override
+    public Card saveCard(Card card) {
+
+        DeckEntity deckEntity = jpaDeckRepository.findById(card.getDeckId())
+                .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
+
+        CardEntity cardEntity = CardEntity.createCardEntity(card);
+        deckEntity.addCard(cardEntity);
+
+        card = cardMapper.entityToDomain(cardEntity);
+
+        return card;
     }
 
 

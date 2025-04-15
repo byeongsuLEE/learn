@@ -1,14 +1,18 @@
 package com.lbs.user.card.infrastructure.entity;
 
+import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.user.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 작성자  : lbs
  * 날짜    : 2025-04-09
- * 풀이방법
+ * 풀이방법e
  **/
 
 @Entity
@@ -23,6 +27,11 @@ public class DeckEntity extends BaseEntity {
     private String description;
     private String tag;
     private String category;
+
+
+    @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL,orphanRemoval = true)
+    List<CardEntity> cards = new ArrayList<>();
+
 
 
     @Builder
@@ -48,6 +57,11 @@ public class DeckEntity extends BaseEntity {
         this.tag = deck.getTag();
         this.description= deck.getCategory();
 
+    }
+
+    public void addCard(CardEntity card){
+        this.cards.add(card);
+        card.linkToDeck(this);
     }
 
 }

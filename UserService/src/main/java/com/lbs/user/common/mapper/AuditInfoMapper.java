@@ -16,12 +16,12 @@ import org.mapstruct.Named;
 @Mapper(componentModel = "spring")
 public interface AuditInfoMapper {
     @Named("entityToAuditInfo")
-        static AuditInfo entityToAuditInfo(BaseEntity deckEntity) {
+        static AuditInfo entityToAuditInfo(BaseEntity baseEntity) {
         return AuditInfo.builder()
-                .createdDate(deckEntity.getCreatedDate())
-                .createdBy(deckEntity.getCreatedBy())
-                .lastModifiedDate(deckEntity.getLastModifiedDate())
-                .lastModifiedBy(deckEntity.getLastModifiedBy())
+                .createdDate(baseEntity.getCreatedDate())
+                .createdBy(baseEntity.getCreatedBy())
+                .lastModifiedDate(baseEntity.getLastModifiedDate())
+                .lastModifiedBy(baseEntity.getLastModifiedBy())
                 .build();
     }
     // 아래의 코드는 안된다. static이 아니기때문에 다른 mapper클래스에서 사용하지 못함.
