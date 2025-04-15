@@ -1,10 +1,15 @@
 package com.lbs.user.card.controller;
 
+import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.dto.request.CreateCardRequestDto;
 import com.lbs.user.card.dto.request.CreateDeckRequestDto;
 import com.lbs.user.card.dto.request.DeckRequestDto;
+import com.lbs.user.card.dto.response.CardResponseDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
+import com.lbs.user.card.mapper.CardMapper;
 import com.lbs.user.card.mapper.DeckMapper;
+import com.lbs.user.card.service.CardService;
 import com.lbs.user.card.service.DeckService;
 import com.lbs.user.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +32,7 @@ import java.util.List;
 public class DeckController {
     private final DeckService deckService;
     private final DeckMapper deckMapper;
+    private final CardMapper cardMapper;
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<DeckResponseDto>> createDeck(@RequestBody CreateDeckRequestDto deckRequestDto ) {
         Deck deck = deckMapper.createDtoToDomain(deckRequestDto);
@@ -72,5 +78,21 @@ public class DeckController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK,id + "제거가 완료되었습니다",id));
     }
+
+
+    // card
+
+    @PostMapping("/{deck_id}/cards/create")
+    public ResponseEntity<ApiResponse<CardResponseDto>> createCard(@PathVariable("deck_id") Long id , @RequestBody CreateCardRequestDto cardRequestDto){
+        Card card = cardMapper.createDtoDomain(cardRequestDto);
+
+        Card savedCard= deckService.createCard(card);
+        CardResponseDto cardResponseDto = cardMapper.domainToResponseDto(savedCard);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,"card 등록 완료했습니다." , cardResponseDto));
+
+
+    }
+
 }
 

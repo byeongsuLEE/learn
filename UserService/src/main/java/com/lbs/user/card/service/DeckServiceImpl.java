@@ -1,5 +1,6 @@
 package com.lbs.user.card.service;
 
+import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.common.exception.DeckNotFoundException;
@@ -32,6 +33,13 @@ public class DeckServiceImpl implements DeckService {
     @Override
     public List<Deck> readAllDecks() {
         return deckRepository.findBy();
+    }
+
+
+
+    @Override
+    public Card createCard(Card card) {
+        return deckRepository.saveCard(card);
     }
 
     @Override

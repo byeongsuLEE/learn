@@ -1,5 +1,6 @@
 package com.lbs.user.card.infrastructure.repository;
 
+import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
 
 import java.util.List;
@@ -12,5 +13,7 @@ public interface DeckRepository {
     Long delete(Long id);
 
     List<Deck> findBy();
+
+    Card saveCard(Card card);
 }
 

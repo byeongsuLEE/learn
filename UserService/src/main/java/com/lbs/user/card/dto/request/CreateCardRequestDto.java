@@ -10,4 +10,7 @@ import lombok.Data;
 
 @Data
 public class CreateCardRequestDto {
+    Long deckId;
+    String title;
+    String desc;
 }
