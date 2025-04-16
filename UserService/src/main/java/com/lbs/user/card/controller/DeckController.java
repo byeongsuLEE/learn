@@ -82,16 +82,15 @@ public class DeckController {
 
     // card
 
-    @PostMapping("/{deck_id}/cards/create")
+    @PostMapping("/{deck_id}/cards")
     public ResponseEntity<ApiResponse<CardResponseDto>> createCard(@PathVariable("deck_id") Long id , @RequestBody CreateCardRequestDto cardRequestDto){
+        cardRequestDto.setDeckId(id);
         Card card = cardMapper.createDtoDomain(cardRequestDto);
 
         Card savedCard= deckService.createCard(card);
         CardResponseDto cardResponseDto = cardMapper.domainToResponseDto(savedCard);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK,"card 등록 완료했습니다." , cardResponseDto));
-
-
     }
 
 }

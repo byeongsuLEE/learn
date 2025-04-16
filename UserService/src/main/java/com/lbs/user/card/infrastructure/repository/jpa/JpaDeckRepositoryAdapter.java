@@ -73,15 +73,16 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
 
     @Override
     public Card saveCard(Card card) {
-
+//        System.out.println(card.getDeckId());
         DeckEntity deckEntity = jpaDeckRepository.findById(card.getDeckId())
                 .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
 
         CardEntity cardEntity = CardEntity.createCardEntity(card);
         deckEntity.addCard(cardEntity);
 
+        //card entity에 값을 넣기 위해서
+        jpaDeckRepository.save(deckEntity);
         card = cardMapper.entityToDomain(cardEntity);
-
         return card;
     }
 
