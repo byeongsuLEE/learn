@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 작성자  : lbs
@@ -26,5 +27,5 @@ public class DeckResponseDto {
     private String category;
     private String tag;
     private AuditInfo auditInfo;
-;
+;   private List<CardResponseDto> cards;
 }

@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 작성자  : lbs
  * 날짜    : 2025-04-10
@@ -22,23 +25,26 @@ public class Deck {
      String category;
      String tag;
      AuditInfo auditInfo;
+        List<Card> cards = new ArrayList<>();
 
-    private Deck(Long id, String title, String desc, String category, String tag) {
+    private Deck(Long id, String title, String desc, String category, String tag, List<Card> cards ) {
          this.id = id;
          this.title = title;
          this.desc = desc;
          this.category = category;
          this.tag = tag;
+         this.cards = cards;
      }
 
 
-    private Deck(Long id, String title, String desc, String category, String tag, AuditInfo auditInfo) {
+    private Deck(Long id, String title, String desc, String category, String tag, AuditInfo auditInfo,List<Card> cards) {
         this.id = id;
         this.title = title;
         this.desc = desc;
         this.category = category;
         this.tag = tag;
         this.auditInfo = auditInfo;
+        this.cards = cards;
     }
 
     private Deck(String title, String desc, String category, String tag) {
@@ -64,12 +70,12 @@ public class Deck {
          return new Deck(title, desc, category, tag);
      }
 
-    public static Deck createDeck(Long id , String title, String desc, String category, String tag, AuditInfo auditInfo) {
-        return new Deck(id, title, desc, category, tag,auditInfo);
+    public static Deck createDeck(Long id , String title, String desc, String category, String tag, AuditInfo auditInfo,List<Card> cards) {
+        return new Deck(id, title, desc, category, tag,auditInfo,cards);
     }
 
-     public static Deck infoDeck(Long id, String title, String desc, String category, String tag) {
-         return new Deck(id, title, desc, category, tag);
+     public static Deck infoDeck(Long id, String title, String desc, String category, String tag, AuditInfo auditInfo,List<Card> cards) {
+         return new Deck(id, title, desc, category, tag,auditInfo,cards);
      }
 
      public void addAuditInfo(AuditInfo auditInfo) {

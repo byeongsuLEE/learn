@@ -1,7 +1,11 @@
 package com.lbs.user.card.dto.request;
 
 import com.lbs.user.card.domain.AuditInfo;
+import com.lbs.user.card.domain.Card;
+import com.lbs.user.card.dto.response.CardResponseDto;
 import lombok.*;
+
+import java.util.List;
 
 /**
  * 작성자  : lbs
@@ -21,4 +25,5 @@ public class DeckRequestDto {
     private String category;
     private String tag;
     private AuditInfo auditInfo;
+    private List<Card> cards;
 }

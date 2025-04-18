@@ -6,6 +6,7 @@ import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class DeckServiceImpl implements DeckService {
     public Card createCard(Card card) {
         return deckRepository.saveCard(card);
     }
+
 
     @Override
     public Deck readDeck(Long id) {

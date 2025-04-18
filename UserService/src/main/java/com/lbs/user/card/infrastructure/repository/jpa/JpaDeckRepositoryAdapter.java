@@ -2,6 +2,7 @@ package com.lbs.user.card.infrastructure.repository.jpa;
 
 import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.entity.CardEntity;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
@@ -10,6 +11,8 @@ import com.lbs.user.card.mapper.DeckMapper;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,6 +87,13 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
         jpaDeckRepository.save(deckEntity);
         card = cardMapper.entityToDomain(cardEntity);
         return card;
+    }
+
+    @Override
+    public Slice<DeckResponseDto> findByAll(Pageable pageable) {
+        Slice<DeckEntity> all = jpaDeckRepository.findAll(pageable);
+        Slice<DeckResponseDto> map = all.map(deckMapper::entityToResponseDto);
+        return map;
     }
 
 
