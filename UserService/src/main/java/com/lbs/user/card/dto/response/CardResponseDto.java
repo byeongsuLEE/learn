@@ -1,6 +1,8 @@
 package com.lbs.user.card.dto.response;
 
 import com.lbs.user.card.domain.AuditInfo;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -11,6 +13,7 @@ import lombok.Data;
 
 
 @Data
+@Builder
 public class CardResponseDto {
     private Long id;
     private Long deckId;

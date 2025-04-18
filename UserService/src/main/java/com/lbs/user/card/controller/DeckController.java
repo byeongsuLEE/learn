@@ -7,12 +7,13 @@ import com.lbs.user.card.dto.request.CreateDeckRequestDto;
 import com.lbs.user.card.dto.request.DeckRequestDto;
 import com.lbs.user.card.dto.response.CardResponseDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
+import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.card.mapper.CardMapper;
 import com.lbs.user.card.mapper.DeckMapper;
-import com.lbs.user.card.service.CardService;
 import com.lbs.user.card.service.DeckService;
 import com.lbs.user.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ public class DeckController {
     private final DeckService deckService;
     private final DeckMapper deckMapper;
     private final CardMapper cardMapper;
+    private final DeckRepository  deckRepository;
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<DeckResponseDto>> createDeck(@RequestBody CreateDeckRequestDto deckRequestDto ) {
         Deck deck = deckMapper.createDtoToDomain(deckRequestDto);
@@ -45,13 +47,24 @@ public class DeckController {
                 .body(ApiResponse.success(HttpStatus.OK,"성공했습니다", deckResponseDto));
 
     }
+//    //페이징 처리 안한 deck 조회
+//    @GetMapping
+//    public ResponseEntity<ApiResponse<List<DeckResponseDto>>> getAllDecks() {
+//        List<Deck> decks = deckService.readAllDecks();
+//        List<DeckResponseDto> deckResponseDtoList = decks.stream().map(deckMapper::domainToResponseDto).toList();
+//        return ResponseEntity.status(HttpStatus.OK)
+//                .body(ApiResponse.success(HttpStatus.OK, deckResponseDtoList));
+//    }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<DeckResponseDto>>> getAllDecks() {
-        List<Deck> decks = deckService.readAllDecks();
-        List<DeckResponseDto> deckResponseDtoList = decks.stream().map(deckMapper::domainToResponseDto).toList();
+        public ResponseEntity<ApiResponse<Slice<DeckResponseDto>>> listDecks(Pageable pageable) {
+        Slice<DeckResponseDto> deckResponseDtoList = deckRepository.findByAll(pageable);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(HttpStatus.OK, deckResponseDtoList));
+                .body(ApiResponse.success(HttpStatus.OK, "list 페이징 처리 성공",deckResponseDtoList));
+
+        // 의문 1 . deckService를 갈필요가있나? 그냥바로 repository로 가면되잖아?
+//        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC , "id"));
+//        deckService.readPageDecks(pageRequest); // 조건 ,
     }
 
     @GetMapping("/{id}")

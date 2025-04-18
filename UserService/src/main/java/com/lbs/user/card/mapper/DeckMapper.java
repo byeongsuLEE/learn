@@ -1,22 +1,16 @@
 package com.lbs.user.card.mapper;
 
-import com.lbs.user.card.domain.AuditInfo;
+import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
-import com.lbs.user.card.dto.request.CreateCardRequestDto;
 import com.lbs.user.card.dto.request.CreateDeckRequestDto;
 import com.lbs.user.card.dto.request.DeckRequestDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.common.mapper.AuditInfoMapper;
-import com.lbs.user.user.domain.User;
-import com.lbs.user.user.dto.request.UserJoinRequestDto;
-import com.lbs.user.user.dto.response.UserResponseDto;
-import com.lbs.user.user.infrastructure.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @ 작성자   : 이병수
@@ -24,8 +18,9 @@ import java.time.LocalDateTime;
  * @ 설명     : dto , domain, orm mapper class
  * default = dto -> domain
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring" , uses = {CardMapper.class, AuditInfoMapper.class})
 public interface DeckMapper {
+
 
     //Request DTO -> Domain
     default Deck createDtoToDomain(CreateDeckRequestDto dto) {
@@ -44,7 +39,8 @@ public interface DeckMapper {
                 dto.getDesc(),
                 dto.getCategory(),
                 dto.getTag(),
-                dto.getAuditInfo()
+                dto.getAuditInfo(),
+                dto.getCards()
         );
    }
 
@@ -60,11 +56,21 @@ public interface DeckMapper {
     // @Mapping(source = ".", target = "auditInfo", qualifiedByName = "entityToAuditInfo") -> static 변수로 가져왔습니다.
     //default : @mapping이 적용되지 않는다.
     default Deck entityToDomain(DeckEntity deckEntity) {
-        return Deck.createDeck(deckEntity.getId(), deckEntity.getTitle(), deckEntity.getDescription(), deckEntity.getCategory(), deckEntity.getTag(), AuditInfoMapper.entityToAuditInfo(deckEntity));
+
+        List<Card> domainCards = deckEntity.getCards().stream()
+                .map(CardMapper::entityToDomainStatic) // 🔁 CardEntity → Card 변환
+                .toList();
+        return Deck.createDeck(deckEntity.getId(), deckEntity.getTitle(), deckEntity.getDescription(), deckEntity.getCategory(), deckEntity.getTag(), AuditInfoMapper.entityToAuditInfoStatic(deckEntity),domainCards);
     }
 
     //Entity -> ResponseDto
-//    DeckResponseDto entityToResponseDto(DeckEntity deckEntity);
+
+    @Mapping(source= "cards", target = "cards", qualifiedByName = "entityToResponseDto")         //card entity -> card response mapper 호출
+    @Mapping(source= "description" , target = "desc")   // db 이름 -> response 이름으로 변경
+    @Mapping(source = ".", target = "auditInfo", qualifiedByName = "entityToAuditInfo")
+    DeckResponseDto entityToResponseDto(DeckEntity deckEntity);
+
+
 
     DeckResponseDto domainToResponseDto(Deck savedDeck);
 
