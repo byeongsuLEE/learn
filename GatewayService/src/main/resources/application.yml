@@ -34,8 +34,19 @@ spring:
           filters:
             - AddRequestHeader=board-request, board-request-header2   # 띄어쓰기 하나 하나가 중요하다. 주의!
             - AddResponseHeader=board-response, board-response-header2
+#  kafka:
+#    bootstrap-servers: evil55.shop:19092
 
-
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include:
+#          - refresh
+#          - health
+#          - info
+#          - bus-refresh
+#          - beans
 
 ## 유레카 서버에 현재 프로젝트를 등록
 eureka:
