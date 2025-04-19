@@ -1,0 +1,14 @@
+= User API 문서
+:toc: left
+:toclevels: 2
+:sectlinks:
+
+== 회원가입 API
+
+=== 요청
+
+include::{snippets}/user-join/http-request.adoc[]
+
+=== 응답
+
+include::{snippets}/user-join/http-response.adoc[]

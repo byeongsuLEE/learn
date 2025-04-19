@@ -1,0 +1,44 @@
+package com.lbs.user.card.domain;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+/**
+ * 작성자  : lbs
+ * 날짜    : 2025-04-13
+ * 풀이방법
+ **/
+
+
+
+@Getter
+@NoArgsConstructor
+public class Card {
+    private Long id;
+    private Long deckId;
+    private String title;
+    private String desc;
+    private AuditInfo auditInfo;
+
+    private Card(Long id , Long deckId, String title, String description, AuditInfo aduitInfo) {
+        this.id = id;
+        this.deckId = deckId;
+        this.title = title;
+        this.desc = description;
+        this.auditInfo = aduitInfo;
+    }
+
+    private Card(Long deckId , String title, String description) {
+        this.deckId = deckId;
+        this.title = title;
+        this.desc = description;
+    }
+
+    public static Card createCard(Long id, Long deckId , String title, String description, AuditInfo auditInfo) {
+        return new Card(id,deckId, title,description,auditInfo);
+    }
+
+    public static Card createCard(Long deckId, String title, String description) {
+        return new Card(deckId, title,description);
+    }
+}
