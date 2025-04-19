@@ -1,19 +1,86 @@
-server:
-  port: 0
-  servlet:
-    context-path: /api/user-service
 
 spring:
   application:
-    name: user-service
-eureka:
-  instance:
-    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://127.0.0.1:8761/eureka
+    name: learn-user
+  config:
+    import: optional:configserver:http://evil55.shop:8888
+
+
+#  config:
+#   import: optional:configserver:http://localhost:8888
 
 
 
+
+
+#  cloud:
+#    bus:
+#      enabled: true
+#      refresh:
+#        enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - refresh
+          - health
+          - info
+          - bus-refresh
+
+#server:
+#  port: 0
+#  servlet:
+#    context-path: /api/user-service
+#
+#
+#spring:
+#  application:
+#    name: user-service
+#  datasource:
+#    url: jdbc:mysql://evil55.shop:3306/lbs
+#    username: evil55
+#    password: a980523
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#  jpa:
+#    hibernate:
+#      ddl-auto: update  # 테이블 자동 생성 및 수정
+#    show-sql: true       # 콘솔에 SQL 출력
+#    properties:
+#      hibernate:
+#        format_sql: true  # SQL 예쁘게 정렬 출력
+#
+#
+#eureka:
+#  instance:
+#    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
+#  client:
+#    register-with-eureka: true
+#    fetch-registry: true
+#    service-url:
+#      defaultZone: http://127.0.0.1:8761/eureka
+#
+#
+#
+
+#---
+#
+#spring:
+#  config:
+#    import: "optional:configserver:"
+#    activate:
+#      on-profile: local
+#server:
+
+#  port: 8081
+
+
+---
+#spring:
+#  config:
+#    activate:
+#      on-profile: local
+#  jpa:
+#    hibernate:
+#      ddl-auto: createDeck
