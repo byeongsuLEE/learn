@@ -17,5 +17,7 @@ public interface DeckService {
 
     Card createCard(Card card);
 
+    Long deleteCard(Long id, Long cardId);
+
 //    List<Deck> readPageDecks(PageRequest pageRequest);
 }
