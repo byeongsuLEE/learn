@@ -11,6 +11,7 @@ import com.lbs.user.card.mapper.DeckMapper;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.Delete;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
@@ -94,6 +95,29 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
         Slice<DeckEntity> all = jpaDeckRepository.findAll(pageable);
         Slice<DeckResponseDto> map = all.map(deckMapper::entityToResponseDto);
         return map;
+    }
+
+    @Override
+    public Card deleteCard(Card card) {
+
+        DeckEntity deckEntity = jpaDeckRepository.findById(card.getDeckId())
+                .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
+
+        CardEntity cardEntity = cardMapper.domainToEntity(card);
+        deckEntity.deleteCard(cardEntity);
+
+        return card;
+    }
+
+    @Override
+    public Long deleteCard(Long deckId, Long cardId) {
+        DeckEntity deckEntity = jpaDeckRepository.findById(deckId)
+                .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
+
+        CardEntity cardEntity = cardMapper.domainToEntity(Card.createCard(cardId,null,null));
+        deckEntity.deleteCard(cardEntity);
+
+        return cardId;
     }
 
 
