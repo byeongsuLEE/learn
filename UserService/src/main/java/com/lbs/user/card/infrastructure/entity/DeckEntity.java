@@ -1,6 +1,5 @@
 package com.lbs.user.card.infrastructure.entity;
 
-import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.user.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -64,4 +63,8 @@ public class DeckEntity extends BaseEntity {
         card.linkToDeck(this);
     }
 
+    public void deleteCard(CardEntity card) {
+        this.cards.remove(card);
+        card.unLinkToDeck();
+    }
 }
