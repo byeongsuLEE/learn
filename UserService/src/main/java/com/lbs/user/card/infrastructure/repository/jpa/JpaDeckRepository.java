@@ -3,11 +3,9 @@ package com.lbs.user.card.infrastructure.repository.jpa;
 import com.lbs.user.card.infrastructure.entity.CardEntity;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
+import jakarta.persistence.LockModeType;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -30,4 +28,9 @@ public interface JpaDeckRepository extends JpaRepository<DeckEntity, Long> {
 
     @EntityGraph(attributePaths = {"cards"})
     List<DeckEntity> findAll();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<DeckEntity> findAllBy();
+
+
 }

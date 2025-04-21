@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 /**
  * 작성자  : lbs
  * 날짜    : 2025-04-09
@@ -64,4 +66,21 @@ public class CardEntity extends BaseEntity {
 //                .build();
 //    }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CardEntity that = (CardEntity) o;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
+    }
+
+    public void unLinkToDeck() {
+        this.deck = null;
+    }
 }
