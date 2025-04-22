@@ -69,6 +69,8 @@ public class DeckController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<DeckResponseDto>> getDeck(@PathVariable("id") Long id) {
+
+        Deck byId = deckRepository.findById(id);
         Deck deck = deckService.readDeck(id);
         DeckResponseDto deckResponseDto = deckMapper.domainToResponseDto(deck);
         return ResponseEntity.status(HttpStatus.OK)

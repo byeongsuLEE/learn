@@ -46,8 +46,7 @@ public class DeckServiceImpl implements DeckService {
 
     @Override
     public Deck readDeck(Long id) {
-        Deck deck = deckRepository.findById(id)
-                .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
+        Deck deck = deckRepository.findById(id);
         return deck;
     }
     @Override
