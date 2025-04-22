@@ -5,6 +5,9 @@ import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import jakarta.persistence.LockModeType;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -32,5 +35,10 @@ public interface JpaDeckRepository extends JpaRepository<DeckEntity, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<DeckEntity> findAllBy();
 
+
+    @EntityGraph(attributePaths = {"cards"})
+    Optional<DeckEntity> findById(Long id);
+//    @EntityGraph(attributePaths = {"cards"})
+//    Page<DeckEntity> findAllBy(Pageable pageable);
 
 }

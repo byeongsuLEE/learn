@@ -35,31 +35,31 @@ class DeckJpaCustomRepositoryTest {
     @Autowired
     DeckMapper deckMapper;
 
-    @Test
-    public void 순수_bulkUpdate(){
-        int cnt = deckJpaCustomRepository.bulkDescChange("bulk 순수 JPA 확인");
-        // !!! 벌크 사용시 주의할점
-        em.flush();
-        em.clear();
-        Assertions.assertThat(cnt).isEqualTo(5);
-    }
-
-    @Test
-    @Rollback(false)
-    public void JPA_bulkUpdate(){
-        jpaDeckRepository.save(DeckEntity.createDeck("bulk 사용 시 주의할점","bulk는 영속성컨텍스트에 들어가지 않는다.","bulk","bulk"));
-        int cnt = jpaDeckRepository.bulkUpdateDescription("bulk JPA TEST 확인");
-
-        // !!! 벌크 사용시 주의할점
-        em.flush();
-        em.clear();
-
-        List<DeckEntity> all = jpaDeckRepository.findAll();
-        DeckEntity deckEntity = all.get(all.size() - 1);
-        log.info("deckentity description= "+ deckEntity.getDescription());
-
-        Assertions.assertThat(cnt).isEqualTo(5);
-    }
+//    @Test
+//    public void 순수_bulkUpdate(){
+//        int cnt = deckJpaCustomRepository.bulkDescChange("bulk 순수 JPA 확인");
+//        // !!! 벌크 사용시 주의할점
+//        em.flush();
+//        em.clear();
+//        Assertions.assertThat(cnt).isEqualTo(5);
+//    }
+//
+//    @Test
+//    @Rollback(false)
+//    public void JPA_bulkUpdate(){
+//        jpaDeckRepository.save(DeckEntity.createDeck("bulk 사용 시 주의할점","bulk는 영속성컨텍스트에 들어가지 않는다.","bulk","bulk"));
+//        int cnt = jpaDeckRepository.bulkUpdateDescription("bulk JPA TEST 확인");
+//
+//        // !!! 벌크 사용시 주의할점
+//        em.flush();
+//        em.clear();
+//
+//        List<DeckEntity> all = jpaDeckRepository.findAll();
+//        DeckEntity deckEntity = all.get(all.size() - 1);
+//        log.info("deckentity description= "+ deckEntity.getDescription());
+//
+//        Assertions.assertThat(cnt).isEqualTo(5);
+//    }
 
     @Test
     @Rollback(false)

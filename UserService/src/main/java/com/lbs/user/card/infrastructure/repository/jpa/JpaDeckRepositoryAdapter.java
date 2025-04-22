@@ -11,14 +11,12 @@ import com.lbs.user.card.mapper.DeckMapper;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.Delete;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 작성자  : lbs
@@ -46,10 +44,11 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
 
 
     @Override
-    public Optional<Deck> findById(Long id) {
-        Optional<Deck> deck1 = jpaDeckRepository.findById(id).map(deckMapper::entityToDomain);
+    public Deck findById(Long id) {
+        Deck deck = jpaDeckRepository.findById(id).map(deckMapper::entityToDomain)
+                .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
 
-        return  deck1;
+        return  deck;
     }
 
     @Override

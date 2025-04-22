@@ -65,12 +65,17 @@ public interface DeckMapper {
 
     //Entity -> ResponseDto
 
-    @Mapping(source= "cards", target = "cards", qualifiedByName = "entityToResponseDto")         //card entity -> card response mapper 호출
+//    @Mapping(source= "cards", target = "cards", qualifiedByName = "entityToResponseDto")         //card entity -> card response mapper 호출
+@Mapping(target = "cards", expression = "java(null)")
     @Mapping(source= "description" , target = "desc")   // db 이름 -> response 이름으로 변경
     @Mapping(source = ".", target = "auditInfo", qualifiedByName = "entityToAuditInfo")
     DeckResponseDto entityToResponseDto(DeckEntity deckEntity);
 
-
+//
+    @Mapping(source= "cards", target = "cards", qualifiedByName = "entityToResponseDto")         //card entity -> card response mapper 호출
+    @Mapping(source= "description" , target = "desc")   // db 이름 -> response 이름으로 변경
+    @Mapping(source = ".", target = "auditInfo", qualifiedByName = "entityToAuditInfo")
+    DeckResponseDto entityToResponseDtoWithCards(DeckEntity deckEntity);
 
     DeckResponseDto domainToResponseDto(Deck savedDeck);
 
