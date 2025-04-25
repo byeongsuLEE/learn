@@ -78,7 +78,11 @@ public class Deck {
          return new Deck(id, title, desc, category, tag,auditInfo,cards);
      }
 
-     public void addAuditInfo(AuditInfo auditInfo) {
+    public static Deck createDeck(Long id, String title, String desc, String category, String tag, List<Card> list) {
+        return  new Deck(id, title, desc, category, tag,list);
+    }
+
+    public void addAuditInfo(AuditInfo auditInfo) {
         this.auditInfo = auditInfo;
      }
 

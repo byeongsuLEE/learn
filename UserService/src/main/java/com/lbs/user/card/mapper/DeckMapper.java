@@ -4,6 +4,7 @@ import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.card.dto.request.CreateDeckRequestDto;
 import com.lbs.user.card.dto.request.DeckRequestDto;
+import com.lbs.user.card.dto.request.UpdateDeckRequestDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.common.mapper.AuditInfoMapper;
@@ -32,17 +33,28 @@ public interface DeckMapper {
         );
     }
 
-   default Deck updateDtoToDomain(DeckRequestDto dto){
+//   default Deck updateDtoToDomain(DeckRequestDto dto){
+//        return Deck.createDeck(
+//                dto.getId(),
+//                dto.getTitle(),
+//                dto.getDesc(),
+//                dto.getCategory(),
+//                dto.getTag(),
+//                dto.getAuditInfo(),
+//                dto.getCards()
+//        );
+//   }
+
+    default Deck updateDtoToDomain(UpdateDeckRequestDto dto){
         return Deck.createDeck(
                 dto.getId(),
                 dto.getTitle(),
                 dto.getDesc(),
                 dto.getCategory(),
                 dto.getTag(),
-                dto.getAuditInfo(),
-                dto.getCards()
+                dto.getCards().stream().map(card -> Card.createCard(dto.getId(),card.getCardId(),card.getTitle(),card.getDesc())).toList()
         );
-   }
+    }
 
 
     //Domain -> Entity

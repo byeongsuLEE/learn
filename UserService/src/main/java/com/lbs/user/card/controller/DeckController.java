@@ -2,9 +2,9 @@ package com.lbs.user.card.controller;
 
 import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.dto.request.UpdateDeckRequestDto;
 import com.lbs.user.card.dto.request.CreateCardRequestDto;
 import com.lbs.user.card.dto.request.CreateDeckRequestDto;
-import com.lbs.user.card.dto.request.DeckRequestDto;
 import com.lbs.user.card.dto.response.CardResponseDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
@@ -17,8 +17,6 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 작성자  : lbs
@@ -78,7 +76,7 @@ public class DeckController {
     }
 
     @PatchMapping ("/update")
-    public ResponseEntity<ApiResponse<DeckResponseDto>> updateDeck(@RequestBody DeckRequestDto deckRequestDto){
+    public ResponseEntity<ApiResponse<DeckResponseDto>> updateDeck(@RequestBody UpdateDeckRequestDto deckRequestDto){
         Deck deck = deckMapper.updateDtoToDomain(deckRequestDto);
         Deck updateDeck = deckService.updateDeck(deck);
         DeckResponseDto deckResponseDto = deckMapper.domainToResponseDto(updateDeck);
