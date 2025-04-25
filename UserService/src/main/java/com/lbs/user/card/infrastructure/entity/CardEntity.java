@@ -36,7 +36,8 @@ public class CardEntity extends BaseEntity {
 
     // private를 두는 이유는 외부에서 entity를 못만들게 하기 위해서이다.
     @Builder
-    private CardEntity(String title, String description) {
+    private CardEntity(Long id, String title, String description) {
+        this.id = id;
         this.title = title;
         this.description = description;
     }
@@ -50,6 +51,7 @@ public class CardEntity extends BaseEntity {
 
     public static CardEntity createCardEntity (Card card){
         return CardEntity.builder()
+                .id(card.getId())
                 .title(card.getTitle())
                 .description(card.getDesc())
                 .build();
@@ -83,4 +85,12 @@ public class CardEntity extends BaseEntity {
     public void unLinkToDeck() {
         this.deck = null;
     }
+
+    public void updateCard(CardEntity card) {
+        this.title = card.getTitle();
+        this.description = card.getDescription();
+    }
+
+
+
 }

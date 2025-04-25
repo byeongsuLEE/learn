@@ -1,12 +1,17 @@
 package com.lbs.user.card.infrastructure.entity;
 
+import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.mapper.CardMapper;
 import com.lbs.user.user.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 작성자  : lbs
@@ -28,9 +33,8 @@ public class DeckEntity extends BaseEntity {
     private String category;
 
 
-    @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CardEntity> cards = new ArrayList<>();
-
 
 
     @Builder
@@ -41,7 +45,7 @@ public class DeckEntity extends BaseEntity {
         this.category = category;
     }
 
-    public static DeckEntity createDeck(String title, String description, String tag, String category){
+    public static DeckEntity createDeck(String title, String description, String tag, String category) {
         return DeckEntity.builder()
                 .title(title)
                 .description(description)
@@ -50,15 +54,17 @@ public class DeckEntity extends BaseEntity {
                 .build();
     }
 
-    public void updateDeck(Deck deck){
+    public void updateDeck(Deck deck) {
         this.title = deck.getTitle();
         this.category = deck.getCategory();
         this.tag = deck.getTag();
-        this.description= deck.getCategory();
+        this.description = deck.getDesc();
 
     }
 
-    public void addCard(CardEntity card){
+
+
+    public void addCard(CardEntity card) {
         this.cards.add(card);
         card.linkToDeck(this);
     }

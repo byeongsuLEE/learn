@@ -84,6 +84,19 @@ class DeckJpaCustomRepositoryTest {
         }
     }
 
+    @Test
+    @Transactional
+    public void updateDeck(){
+        List<DeckEntity> all = jpaDeckRepository.findAllBy();
+        List<DeckResponseDto> list = all.stream().map(deckMapper::entityToResponseDto).toList();
+
+        for ( DeckResponseDto dto : list ) {
+            log.info(dto.toString()+"\n");
+        }
+    }
+
+
+
 
 
 
