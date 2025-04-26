@@ -22,5 +22,7 @@ public interface DeckRepository {
     Card deleteCard(Card card);
 
     Long deleteCard(Long id, Long cardId);
+
+    void setDeckCardCount();
 }
 

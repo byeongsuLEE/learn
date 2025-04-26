@@ -3,6 +3,7 @@ package com.lbs.user.card.infrastructure.repository.jpa;
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
+import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.card.mapper.DeckMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -28,12 +29,22 @@ class DeckJpaCustomRepositoryTest {
     @Autowired
     JpaDeckRepository jpaDeckRepository;
 
+    @Autowired
+    DeckRepository deckRepository;
+
+
     @PersistenceContext
     EntityManager em;
 
-
     @Autowired
     DeckMapper deckMapper;
+
+    @Test
+    @Rollback(false)
+    public void update_AllDeckCardCount(){
+        deckRepository.setDeckCardCount();
+    }
+
 
 //    @Test
 //    public void 순수_bulkUpdate(){

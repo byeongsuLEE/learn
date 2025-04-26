@@ -29,6 +29,7 @@ public interface JpaDeckRepository extends JpaRepository<DeckEntity, Long> {
     @Query("update DeckEntity d set d.description = :desc")
     int bulkUpdateDescription(@Param("desc") String desc);
 
+
     @EntityGraph(attributePaths = {"cards"})
     List<DeckEntity> findAll();
 
