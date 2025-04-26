@@ -25,8 +25,7 @@ public class Deck {
      String category;
      String tag;
      AuditInfo auditInfo;
-        List<Card> cards = new ArrayList<>();
-
+     List<Card> cards = new ArrayList<>();
     private Deck(Long id, String title, String desc, String category, String tag, List<Card> cards ) {
          this.id = id;
          this.title = title;

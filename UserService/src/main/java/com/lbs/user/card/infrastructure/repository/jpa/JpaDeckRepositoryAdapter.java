@@ -70,12 +70,9 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
 //        deckEntity.getCards().clear();
         deckEntity.updateDeck(deck);
 
-        updateDeckCards(deck, deckEntity);
-//
-
-
         //방법 2. 변경된 부분만 넣어주자.
         //이유 : 방법 1은 수정버튼을 여러번 눌렀을 때 삭제와 삽입 연산이 n번씩 나가니까 힘들 것 같음
+        updateDeckCards(deck, deckEntity);
 
 
         Deck updatedDeck = deckMapper.entityToDomain(deckEntity);
@@ -156,6 +153,15 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
         return cardId;
     }
 
+   @Override
+    public void setDeckCardCount(){
+
+        List<DeckEntity> deckList = jpaDeckRepository.findAll();
+        for(DeckEntity deckEntity : deckList){
+            System.out.println("size : " + deckEntity.getCards().size());
+            deckEntity.updateCardCount(deckEntity.getCards().size());
+        }
+    }
     
 
 

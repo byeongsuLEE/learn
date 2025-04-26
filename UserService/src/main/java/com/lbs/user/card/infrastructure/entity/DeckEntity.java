@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @Table(name = "decks")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeckEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +33,7 @@ public class DeckEntity extends BaseEntity {
     private String tag;
     private String category;
 
-
+    private int cardCount;
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CardEntity> cards = new ArrayList<>();
 
@@ -66,11 +67,17 @@ public class DeckEntity extends BaseEntity {
 
     public void addCard(CardEntity card) {
         this.cards.add(card);
+        this.cardCount++;
         card.linkToDeck(this);
     }
 
     public void deleteCard(CardEntity card) {
         this.cards.remove(card);
+        this.cardCount--;
         card.unLinkToDeck();
+    }
+
+    public void updateCardCount(int count){
+        this.cardCount = count;
     }
 }

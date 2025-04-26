@@ -1,5 +1,6 @@
 package com.lbs.user.card.infrastructure.repository.jpa;
 
+import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,13 @@ public class DeckJpaCustomRepository {
 
         log.info("변경된 개수는 = " + size + "입니다.");
         return  size;
+    }
+
+    @Transactional
+    public void allCardCountSet(){
+
+
+       em.createQuery("select DeckEntity d from DeckEntity d").getResultList();
     }
 
 
