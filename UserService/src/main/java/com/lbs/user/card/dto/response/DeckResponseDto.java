@@ -27,5 +27,6 @@ public class DeckResponseDto {
     private String category;
     private String tag;
     private AuditInfo auditInfo;
-;   private List<CardResponseDto> cards;
+    private int cardCount;
+    private List<CardResponseDto> cards;
 }

@@ -4,6 +4,7 @@ import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.card.dto.request.CreateDeckRequestDto;
 import com.lbs.user.card.dto.request.DeckRequestDto;
+import com.lbs.user.card.dto.request.UpdateDeckRequestDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.common.mapper.AuditInfoMapper;
@@ -32,17 +33,28 @@ public interface DeckMapper {
         );
     }
 
-   default Deck updateDtoToDomain(DeckRequestDto dto){
+//   default Deck updateDtoToDomain(DeckRequestDto dto){
+//        return Deck.createDeck(
+//                dto.getId(),
+//                dto.getTitle(),
+//                dto.getDesc(),
+//                dto.getCategory(),
+//                dto.getTag(),
+//                dto.getAuditInfo(),
+//                dto.getCards()
+//        );
+//   }
+
+    default Deck updateDtoToDomain(UpdateDeckRequestDto dto){
         return Deck.createDeck(
                 dto.getId(),
                 dto.getTitle(),
                 dto.getDesc(),
                 dto.getCategory(),
                 dto.getTag(),
-                dto.getAuditInfo(),
-                dto.getCards()
+                dto.getCards().stream().map(card -> Card.createCard(dto.getId(),card.getCardId(),card.getTitle(),card.getDesc())).toList()
         );
-   }
+    }
 
 
     //Domain -> Entity
@@ -65,12 +77,17 @@ public interface DeckMapper {
 
     //Entity -> ResponseDto
 
-    @Mapping(source= "cards", target = "cards", qualifiedByName = "entityToResponseDto")         //card entity -> card response mapper 호출
+//    @Mapping(source= "cards", target = "cards", qualifiedByName = "entityToResponseDto")         //card entity -> card response mapper 호출
+@Mapping(target = "cards", expression = "java(null)")
     @Mapping(source= "description" , target = "desc")   // db 이름 -> response 이름으로 변경
     @Mapping(source = ".", target = "auditInfo", qualifiedByName = "entityToAuditInfo")
     DeckResponseDto entityToResponseDto(DeckEntity deckEntity);
 
-
+//
+    @Mapping(source= "cards", target = "cards", qualifiedByName = "entityToResponseDto")         //card entity -> card response mapper 호출
+    @Mapping(source= "description" , target = "desc")   // db 이름 -> response 이름으로 변경
+    @Mapping(source = ".", target = "auditInfo", qualifiedByName = "entityToAuditInfo")
+    DeckResponseDto entityToResponseDtoWithCards(DeckEntity deckEntity);
 
     DeckResponseDto domainToResponseDto(Deck savedDeck);
 

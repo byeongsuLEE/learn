@@ -6,7 +6,6 @@ import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,13 +43,12 @@ public class DeckServiceImpl implements DeckService {
     }
 
 
+
     @Override
     public Deck readDeck(Long id) {
-        Deck deck = deckRepository.findById(id)
-                .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
+        Deck deck = deckRepository.findById(id);
         return deck;
     }
-
     @Override
     public Deck updateDeck(Deck deck) {
 
@@ -60,5 +58,10 @@ public class DeckServiceImpl implements DeckService {
     @Override
     public Long deleteDeck(Long id) {
         return deckRepository.delete(id);
+    }
+
+    @Override
+    public Long deleteCard(Long id, Long cardId) {
+        return deckRepository.deleteCard(id,cardId);
     }
 }

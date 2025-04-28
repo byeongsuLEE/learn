@@ -7,10 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface DeckRepository {
-    Optional<Deck> findById(Long id);
+    Deck findById(Long id);
     Deck save(Deck deck);
     Deck update(Deck deck);
     Long delete(Long id);
@@ -19,5 +18,11 @@ public interface DeckRepository {
 
     Card saveCard(Card card);
     Slice<DeckResponseDto> findByAll(Pageable pageable);
+
+    Card deleteCard(Card card);
+
+    Long deleteCard(Long id, Long cardId);
+
+    void setDeckCardCount();
 }
 

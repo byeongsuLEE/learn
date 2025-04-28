@@ -2,9 +2,9 @@ package com.lbs.user.card.controller;
 
 import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.dto.request.UpdateDeckRequestDto;
 import com.lbs.user.card.dto.request.CreateCardRequestDto;
 import com.lbs.user.card.dto.request.CreateDeckRequestDto;
-import com.lbs.user.card.dto.request.DeckRequestDto;
 import com.lbs.user.card.dto.response.CardResponseDto;
 import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
@@ -17,8 +17,6 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 작성자  : lbs
@@ -69,6 +67,8 @@ public class DeckController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<DeckResponseDto>> getDeck(@PathVariable("id") Long id) {
+
+        Deck byId = deckRepository.findById(id);
         Deck deck = deckService.readDeck(id);
         DeckResponseDto deckResponseDto = deckMapper.domainToResponseDto(deck);
         return ResponseEntity.status(HttpStatus.OK)
@@ -76,7 +76,7 @@ public class DeckController {
     }
 
     @PatchMapping ("/update")
-    public ResponseEntity<ApiResponse<DeckResponseDto>> updateDeck(@RequestBody DeckRequestDto deckRequestDto){
+    public ResponseEntity<ApiResponse<DeckResponseDto>> updateDeck(@RequestBody UpdateDeckRequestDto deckRequestDto){
         Deck deck = deckMapper.updateDtoToDomain(deckRequestDto);
         Deck updateDeck = deckService.updateDeck(deck);
         DeckResponseDto deckResponseDto = deckMapper.domainToResponseDto(updateDeck);
@@ -92,6 +92,13 @@ public class DeckController {
                 .body(ApiResponse.success(HttpStatus.OK,id + "제거가 완료되었습니다",id));
     }
 
+    @DeleteMapping("/{id}/delete/{card_id}")
+    public  ResponseEntity<ApiResponse<Long>> deleteCard(@PathVariable("id") Long id, @PathVariable("card_id") Long card_id){
+        Long deleteCardId = deckService.deleteCard(id, card_id);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,deleteCardId + "제거가 완료되었습니다",deleteCardId));
+    }
 
     // card
 
@@ -105,6 +112,7 @@ public class DeckController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK,"card 등록 완료했습니다." , cardResponseDto));
     }
+
 
 }
 

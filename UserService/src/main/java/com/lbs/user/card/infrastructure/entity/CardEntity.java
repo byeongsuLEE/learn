@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 /**
  * 작성자  : lbs
  * 날짜    : 2025-04-09
@@ -34,7 +36,8 @@ public class CardEntity extends BaseEntity {
 
     // private를 두는 이유는 외부에서 entity를 못만들게 하기 위해서이다.
     @Builder
-    private CardEntity(String title, String description) {
+    private CardEntity(Long id, String title, String description) {
+        this.id = id;
         this.title = title;
         this.description = description;
     }
@@ -48,6 +51,7 @@ public class CardEntity extends BaseEntity {
 
     public static CardEntity createCardEntity (Card card){
         return CardEntity.builder()
+                .id(card.getId())
                 .title(card.getTitle())
                 .description(card.getDesc())
                 .build();
@@ -63,5 +67,30 @@ public class CardEntity extends BaseEntity {
 //                .deckEntity(deckEntity)
 //                .build();
 //    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CardEntity that = (CardEntity) o;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
+    }
+
+    public void unLinkToDeck() {
+        this.deck = null;
+    }
+
+    public void updateCard(CardEntity card) {
+        this.title = card.getTitle();
+        this.description = card.getDescription();
+    }
+
+
 
 }
