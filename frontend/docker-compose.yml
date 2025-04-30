@@ -1,0 +1,9 @@
+version: '3'
+services:
+  frontend:
+    image: your-dockerhub-username/frontend:latest  # Docker Hub에서 pull 받을 이미지
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: always
