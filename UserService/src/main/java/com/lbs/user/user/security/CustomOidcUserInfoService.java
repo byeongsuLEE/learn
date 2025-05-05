@@ -32,7 +32,7 @@ public class CustomOidcUserInfoService extends OidcUserService {
     public OidcUser  loadUser(OidcUserRequest userRequest) {
         OidcUser oidcUser  = super.loadUser(userRequest);
 
-        String clientId = userRequest.getClientRegistration().getClientId();
+        String clientId = userRequest.getClientRegistration().getRegistrationId();
         log.info("OIDC  로그인 요청 : {}", clientId);
         log.info("OIDC  로그인 : " + oidcUser.getAttributes());
         // Client(Github,Google)에 맞는 정보들 가져오기
