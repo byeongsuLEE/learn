@@ -61,4 +61,15 @@ public class UserServiceImpl implements UserService {
     public User deleteUser(String id) {
         return null;
     }
+
+    @Override
+    public User readUserByEmail(String email) {
+        UserEntity userInfo = userRepository.findByEmail(email)
+                .orElseGet(null);
+
+        if(userInfo == null) { return null;}
+
+        User user = userMapper.userEntityToUser(userInfo);
+        return user;
+    }
 }
