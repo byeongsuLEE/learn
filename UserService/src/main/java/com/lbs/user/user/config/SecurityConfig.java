@@ -1,8 +1,10 @@
 package com.lbs.user.user.config;
 
+import com.lbs.user.user.security.CustomOAuth2AuthenticationSuccessHandler;
 import com.lbs.user.user.security.CustomOauth2UserInfoService;
 import com.lbs.user.user.security.CustomOidcUserInfoService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,11 +28,12 @@ import java.util.List;
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final CustomOauth2UserInfoService customOauth2UserInfoService;
     private final CustomOidcUserInfoService customOidcUserInfoService;
-
+    private final CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -46,7 +49,7 @@ public class SecurityConfig {
                                 .userService(customOauth2UserInfoService)
                                 .oidcUserService(customOidcUserInfoService)
                         )
-
+                        .successHandler(customOAuth2AuthenticationSuccessHandler)
                 );
 
         return http.build();
