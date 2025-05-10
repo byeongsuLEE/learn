@@ -38,6 +38,7 @@ public class UserServiceImpl implements UserService {
 
 
     private User userPasswordEncoding(User user) {
+        if(user.getPassword()==null) {return user;}
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.encodingPassword(encodedPassword);
         return user;
@@ -60,5 +61,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public User deleteUser(String id) {
         return null;
+    }
+
+    @Override
+    public User readUserByEmail(String email) {
+        UserEntity userInfo = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if(userInfo == null) { return null;}
+
+        User user = userMapper.userEntityToUser(userInfo);
+        return user;
     }
 }
