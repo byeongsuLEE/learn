@@ -1,5 +1,8 @@
 package com.lbs.user.user.config;
 
+import com.lbs.user.user.jwt.JWTAuthenticationFilter;
+import com.lbs.user.user.jwt.JWTExceptionFilter;
+import com.lbs.user.user.jwt.JwtTokenProvider;
 import com.lbs.user.user.security.CustomOAuth2AuthenticationSuccessHandler;
 import com.lbs.user.user.security.CustomOauth2UserInfoService;
 import com.lbs.user.user.security.CustomOidcUserInfoService;
@@ -12,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,23 +38,32 @@ public class SecurityConfig {
     private final CustomOauth2UserInfoService customOauth2UserInfoService;
     private final CustomOidcUserInfoService customOidcUserInfoService;
     private final CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler;
-
+    private final JwtTokenProvider jwtTokenProvider;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors-> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf->csrf.disable())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2->oauth2
-                        .userInfoEndpoint(userInfo->userInfo
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+
+                .addFilterBefore(new JWTExceptionFilter(jwtTokenProvider) , JWTAuthenticationFilter.class)
+                .addFilterBefore(new JWTAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOauth2UserInfoService)
                                 .oidcUserService(customOidcUserInfoService)
                         )
                         .successHandler(customOAuth2AuthenticationSuccessHandler)
+                )
+
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/login").permitAll()
+                        .anyRequest().authenticated()
                 );
+
+
+
+
 
         return http.build();
 
@@ -60,10 +73,10 @@ public class SecurityConfig {
     // 나중에 바꿔야함
     // netty 기반의 cors는 import cors-reative 로 바꿔야함!!!!
     @Bean
-    public CorsConfigurationSource  corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://evil55.shop"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
