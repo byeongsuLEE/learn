@@ -17,6 +17,6 @@ public interface DeckService {
     Card createCard(Card card);
     Long deleteCard(Long id, Long cardId);
 //    List<Deck> readPageDecks(PageRequest pageRequest);
-
+public Deck updateCardCountWithTransactionTest(Long id, int newCardCount, boolean causeError);
 
 }

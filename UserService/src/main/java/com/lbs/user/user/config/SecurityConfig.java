@@ -61,7 +61,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/login","/logout","/logout/dsafdsfdsd").permitAll()
-                        .anyRequest().authenticated()
+//                        .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
 
                 .logout(logout -> logout.logoutSuccessUrl("http://localhost:3000"));

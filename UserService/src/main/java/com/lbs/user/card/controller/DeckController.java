@@ -12,11 +12,16 @@ import com.lbs.user.card.mapper.CardMapper;
 import com.lbs.user.card.mapper.DeckMapper;
 import com.lbs.user.card.service.DeckService;
 import com.lbs.user.common.response.ApiResponse;
+import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 작성자  : lbs
@@ -28,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/deck")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class DeckController {
     private final DeckService deckService;
     private final DeckMapper deckMapper;
@@ -113,6 +119,35 @@ public class DeckController {
                 .body(ApiResponse.success(HttpStatus.OK,"card 등록 완료했습니다." , cardResponseDto));
     }
 
+    @PostMapping("/{id}/transaction-rollback-test-with-error")
+    public ResponseEntity<ApiResponse<String>> transactionRollbackTestWithError(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, Object> requestBody) {
 
+        try {
+            // 1. 초기 상태 기록
+            Deck deck = deckRepository.findById(id);
+            int originalCount = deck.getCardCount();
+
+            // 2. 데이터 변경
+
+            // Redis 키 설정
+            String redisKey = "test:deck:" + id;
+
+            // 3. 트랜잭션 내에서 실행 (의도적인 에러 발생)
+            deckService.updateCardCountWithTransactionTest(id, 5555, true);
+
+            // 이 코드는 실행되지 않음 (예외 발생으로 인해)
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success(HttpStatus.OK, "트랜잭션 성공 (실행되지 않음)"));
+
+        } catch (Exception e) {
+            log.info("에러 메시지는 : " + e.getMessage());
+            System.out.println();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                            "트랜잭션 롤백 발생", ErrorCode.DECK_NOT_FOUND));
+        }
+    }
 }
 
