@@ -11,13 +11,16 @@ import com.lbs.user.card.mapper.DeckMapper;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,12 +33,15 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class JpaDeckRepositoryAdapter implements DeckRepository {
 
 
     private final DeckMapper deckMapper;
     private final CardMapper cardMapper;
     private final JpaDeckRepository jpaDeckRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+
 
     @Override
     public List<Deck> findBy() {
@@ -162,7 +168,24 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
             deckEntity.updateCardCount(deckEntity.getCards().size());
         }
     }
-    
+
+    @Override
+    public void updateCardCount() {
+       DeckEntity deck = jpaDeckRepository.findById(5L).orElseGet(null);
+       deck.updateCardCount(555555);
+        // 3. Redis 업데이트
+        String redisKey = "key:5";
+        redisTemplate.opsForValue().set(redisKey, 1234);
+        Object o = redisTemplate.opsForValue().get(redisKey);
+
+        log.info("reids exec 하기전 예상값 : null ,  실제값 : {}",o);
+
+        // 4. 조건부 예외 발생 (롤백 테스트용)
+
+            throw new RuntimeException("의도적인 예외 발생 - 트랜잭션 롤백 테스트");
+
+
+    }
 
 
 }
