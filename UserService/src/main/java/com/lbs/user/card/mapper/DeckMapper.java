@@ -72,7 +72,7 @@ public interface DeckMapper {
         List<Card> domainCards = deckEntity.getCards().stream()
                 .map(CardMapper::entityToDomainStatic) // 🔁 CardEntity → Card 변환
                 .toList();
-        return Deck.createDeck(deckEntity.getId(), deckEntity.getTitle(), deckEntity.getDescription(), deckEntity.getCategory(), deckEntity.getTag(), AuditInfoMapper.entityToAuditInfoStatic(deckEntity),domainCards);
+        return Deck.createDeck(deckEntity.getId(), deckEntity.getTitle(), deckEntity.getDescription(), deckEntity.getCategory(), deckEntity.getTag(), AuditInfoMapper.entityToAuditInfoStatic(deckEntity),domainCards,deckEntity.getCardCount());
     }
 
     //Entity -> ResponseDto
