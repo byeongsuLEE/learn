@@ -6,6 +6,7 @@ import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +20,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DeckServiceImpl implements DeckService {
-
     private final DeckRepository deckRepository;
     @Override
     public Deck saveDeck(Deck deck) {
@@ -63,5 +63,13 @@ public class DeckServiceImpl implements DeckService {
     @Override
     public Long deleteCard(Long id, Long cardId) {
         return deckRepository.deleteCard(id,cardId);
+    }
+
+    @Override
+    public Deck updateCardCountWithTransactionTest(Long id, int newCardCount, boolean causeError) {
+        // 1. 기존 값 저장 (로깅용)
+
+        deckRepository.updateCardCount();
+        return null;
     }
 }
