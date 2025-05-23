@@ -6,6 +6,7 @@ import com.lbs.user.common.response.ApiResponse;
 import com.lbs.user.user.domain.User;
 import com.lbs.user.user.dto.request.UserJoinRequestDto;
 import com.lbs.user.user.service.UserService;
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +36,10 @@ public class UserController {
 
     @Value("${yml-name}")
     private String configFileName ;
+
+
     @GetMapping("/welcome")
+    @Timed(value ="users.welcome", longTask = true)
     public ResponseEntity<ApiResponse<String>> gatewayConnectTest (){
 
         log.info("들어왔나?");
@@ -52,6 +56,7 @@ public class UserController {
 
     }
     @GetMapping("/port-check")
+    @Timed(value ="users.status", longTask = true)
     public ResponseEntity<ApiResponse<String>> gatewayPortCheck (){
 
         log.info("customfilter check ");
@@ -59,9 +64,7 @@ public class UserController {
                 .body(ApiResponse.success(HttpStatus.OK,
                         String.format("서버 포트는 :"+ env.getProperty("local.server.port"))
                                 + "\n config 파일 이름은 :  = " + configFileName
-
                 ));
-
     }
 
     @PostMapping("/join")
