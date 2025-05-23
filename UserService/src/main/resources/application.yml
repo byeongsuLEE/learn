@@ -28,6 +28,9 @@ management:
           - health
           - info
           - bus-refresh
+          - info
+          - metrics
+          - prometheus
 
 #server:
 #  port: 0
