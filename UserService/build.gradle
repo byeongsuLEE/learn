@@ -40,6 +40,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
 
+    //모니터링
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     // actuator – 엔드포인트 노출용
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
