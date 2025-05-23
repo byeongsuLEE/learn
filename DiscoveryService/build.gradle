@@ -23,6 +23,11 @@ ext {
 
 dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+
+    //Eureka 서버가 내부적으로 사용하는 Google Guava의 CacheBuilder 클래스를 찾을 수 없어서 발생하는 오류입니다.
+
+
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
