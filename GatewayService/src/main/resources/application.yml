@@ -37,16 +37,20 @@ spring:
 #  kafka:
 #    bootstrap-servers: evil55.shop:19092
 
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include:
-#          - refresh
-#          - health
-#          - info
-#          - bus-refresh
-#          - beans
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - refresh
+          - health
+          - info
+          - bus-refresh
+          - beans
+          - info
+          - metrics
+          - prometheus
+
 
 ## 유레카 서버에 현재 프로젝트를 등록
 eureka:
