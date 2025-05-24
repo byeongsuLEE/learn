@@ -27,6 +27,12 @@ spring:
                 postLogger: true
 #            - AddRequestHeader=user-request, user-request-header2   # 띄어쓰기 하나 하나가 중요하다. 주의!
 #            - AddResponseHeader=user-response, user-response-header2
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/order-service/**
+
+
         - id: board-service
           uri: http://localhost:8082/
           predicates:
