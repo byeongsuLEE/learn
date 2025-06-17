@@ -12,13 +12,6 @@ spring:
       on-profile: jenkins
     import: optional:configserver:http://config-server:8888  # Jenkins용
 
-#  config:
-#   import: optional:configserver:http://localhost:8888
-
-
-
-
-
 #  cloud:
 #    bus:
 #      enabled: true
