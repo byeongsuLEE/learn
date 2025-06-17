@@ -5,6 +5,12 @@ spring:
   config:
     import: optional:configserver:http://evil55.shop:8888
 
+---
+spring:
+  config:
+    activate:
+      on-profile: jenkins
+    import: optional:configserver:http://config-server:8888  # Jenkins용
 
 #  config:
 #   import: optional:configserver:http://localhost:8888
