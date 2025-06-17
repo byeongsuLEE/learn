@@ -77,8 +77,8 @@ pipeline {
                         echo "⚠️ 변경된 서비스가 없습니다. UserService를 기본 배포합니다."
                         changedServices.add('UserService')
                     }
-
-                    env.CHANGED_SERVICES = changedServices.join(',')
+                    def servicesString = changedServices.join(',')
+                    env.CHANGED_SERVICES = servicesString
                     echo "🎯 배포할 서비스: ${env.CHANGED_SERVICES}"
                     echo "🔍 디버그 - changedServices: ${changedServices}"
                     echo "🔍 디버그 - changedServices.size(): ${changedServices.size()}"
