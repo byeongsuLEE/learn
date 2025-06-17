@@ -17,37 +17,11 @@ pipeline {
             steps {
                 echo '📦 GitHub에서 learn 코드 가져오는 중...'
                 script {
-                    try {
-                        // 먼저 브랜치 정보 확인
-                        sh '''
-                            echo "=== 원격 브랜치 정보 확인 ==="
-                            git ls-remote --heads https://github.com/byeongsuLEE/learn.git
-                        '''
-
-                        // 브랜치 이름 확인 후 적절한 브랜치로 변경
-                        checkout([
-                            $class: 'GitSCM',
-                            branches: [[name: '*/main']], // main 브랜치 시도
-                            userRemoteConfigs: [[
-                                url: 'https://github.com/byeongsuLEE/learn.git',
-                                credentialsId: 'github-access-Token'
-                            ]]
-                        ])
-                    } catch (Exception e) {
-                        echo "main 브랜치 실패, master 브랜치 시도 중..."
-                        // main 실패 시 master 시도
-                        checkout([
-                            $class: 'GitSCM',
-                            branches: [[name: '*/master']], // master 브랜치 시도
-                            userRemoteConfigs: [[
-                                url: 'https://github.com/byeongsuLEE/learn.git',
-                                credentialsId: 'github-access-Token'
-                            ]]
-                        ])
-                    }
+                    git branch: 'master',
+                        url: 'https://github.com/byeongsuLEE/learn.git',
+                        credentialsId: 'github-access-Token'
                 }
                 sh 'ls -la'
-                sh 'git branch -a'
                 echo '✅ GitHub 연결 성공!'
             }
         }
@@ -78,10 +52,10 @@ pipeline {
                     } catch (Exception e) {
                         // 첫 번째 커밋인 경우 UserService만 배포
                         echo "첫 번째 커밋이거나 이전 커밋이 없습니다. UserService를 기본 배포합니다."
-                        changedServices.add('UserService')
+                        changedServices = ['UserService']
                     }
 
-                    if (changes && changes.size() > 0 && !changedServices) {
+                    if (changes && !changedServices) {
                         // 개별 서비스 변경 감지만 수행 (Config Server가 설정 관리)
                         serviceMap.each { folder, dockerService ->
                             def hasServiceChanges = changes.any { it.startsWith("${folder}/") }
@@ -91,7 +65,7 @@ pipeline {
                             }
                         }
 
-                        if (!changedServices || changedServices.size() == 0) {
+                        if (!changedServices) {
                             echo "📝 변경된 파일이 서비스 폴더 외부에 있습니다."
                             echo "📋 변경된 파일: ${changes.join(', ')}"
                             echo "⚠️ 서비스 배포가 필요한 경우 수동으로 트리거하세요."
@@ -99,18 +73,13 @@ pipeline {
                     }
 
                     // 변경된 서비스가 없으면 강제로 UserService 배포 (테스트용)
-                    if (!changedServices || changedServices.size() == 0) {
+                    if (!changedServices) {
                         echo "⚠️ 변경된 서비스가 없습니다. UserService를 기본 배포합니다."
                         changedServices = ['UserService']
                     }
 
-                    // 환경 변수 설정 (확실한 값 설정)
-                    def servicesString = changedServices.join(',')
-                    env.CHANGED_SERVICES = servicesString
-
+                    env.CHANGED_SERVICES = changedServices.join(',')
                     echo "🎯 배포할 서비스: ${env.CHANGED_SERVICES}"
-                    echo "🔍 디버그 - changedServices: ${changedServices}"
-                    echo "🔍 디버그 - servicesString: ${servicesString}"
                 }
             }
         }
@@ -276,32 +245,14 @@ pipeline {
         }
 
         stage('Health Check') {
-            when {
-                not {
-                    anyOf {
-                        environment name: 'CHANGED_SERVICES', value: ''
-                        environment name: 'CHANGED_SERVICES', value: 'null'
-                    }
-                }
-            }
             steps {
                 script {
                     echo '🏥 배포된 서비스 헬스체크 시작...'
-                    echo "🔍 CHANGED_SERVICES 값: '${env.CHANGED_SERVICES}'"
-
-                    // 추가 안전 장치
-                    if (!env.CHANGED_SERVICES || env.CHANGED_SERVICES == 'null' || env.CHANGED_SERVICES.trim() == '') {
-                        echo '⚠️ 배포된 서비스가 없습니다. 헬스체크를 건너뜁니다.'
-                        return
-                    }
-
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceHealthMap = [
                         'UserService': 'http://evil55.shop:8081/actuator/health',
                         'Gateway': 'http://evil55.shop:8000/actuator/health'
                     ]
-
-                    echo "🔍 헬스체크할 서비스: ${services.join(', ')}"
 
                     services.each { service ->
                         def healthUrl = serviceHealthMap[service]
@@ -332,8 +283,6 @@ pipeline {
                                     }
                                 }
                             }
-                        } else {
-                            echo "⚠️ ${service}에 대한 헬스체크 URL이 정의되지 않았습니다."
                         }
                     }
                 }
@@ -392,23 +341,18 @@ pipeline {
         success {
             script {
                 echo '🎉 서비스 배포 파이프라인 성공!'
+                echo "✅ 배포된 서비스: ${env.CHANGED_SERVICES}"
+                echo "🌐 서비스 접속 URL:"
 
-                if (env.CHANGED_SERVICES) {
-                    echo "✅ 배포된 서비스: ${env.CHANGED_SERVICES}"
-                    echo "🌐 서비스 접속 URL:"
-
-                    def services = env.CHANGED_SERVICES.split(',')
-                    services.each { service ->
-                        if (service == 'UserService') {
-                            echo "  - UserService API: https://evil55.shop/api/user-service"
-                            echo "  - UserService Health: http://evil55.shop:8081/actuator/health"
-                        } else if (service == 'Gateway') {
-                            echo "  - Gateway: https://evil55.shop"
-                            echo "  - Gateway Health: http://evil55.shop:8000/actuator/health"
-                        }
+                def services = env.CHANGED_SERVICES.split(',')
+                services.each { service ->
+                    if (service == 'UserService') {
+                        echo "  - UserService API: https://evil55.shop/api/user-service"
+                        echo "  - UserService Health: http://evil55.shop:8081/actuator/health"
+                    } else if (service == 'Gateway') {
+                        echo "  - Gateway: https://evil55.shop"
+                        echo "  - Gateway Health: http://evil55.shop:8000/actuator/health"
                     }
-                } else {
-                    echo "⚠️ 배포된 서비스가 없습니다."
                 }
 
                 echo "📋 배포 정보:"
@@ -419,12 +363,7 @@ pipeline {
         failure {
             script {
                 echo '❌ 서비스 배포 파이프라인 실패!!'
-
-                if (env.CHANGED_SERVICES) {
-                    echo "❌ 실패한 서비스: ${env.CHANGED_SERVICES}"
-                } else {
-                    echo "❌ 서비스 감지 또는 초기 설정에서 실패"
-                }
+                echo "❌ 실패한 서비스: ${env.CHANGED_SERVICES}"
 
                 // 실패 시 디버깅 정보 수집
                 sh '''
