@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'JDK17'  // Jenkins에 설정된 JDK 17 이름
-    }
-
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
         DOCKER_REGISTRY = 'evil55'
