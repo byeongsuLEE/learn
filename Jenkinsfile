@@ -17,7 +17,7 @@ pipeline {
             steps {
                 echo '📦 GitHub에서 learn 코드 가져오는 중...'
                 script {
-                    git branch: 'main',
+                    git branch: 'master',
                         url: 'https://github.com/byeongsuLEE/learn.git',
                         credentialsId: 'github-access-Token'
                 }
