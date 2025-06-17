@@ -36,6 +36,13 @@ public class Card {
         this.desc = description;
     }
 
+    public Card(Long deckId, Long cardId, String title, String desc) {
+        this.deckId = deckId;
+        this.id = cardId;
+        this.title = title;
+        this.desc = desc;
+    }
+
     public static Card createCard(Long id, Long deckId , String title, String description, AuditInfo auditInfo) {
         return new Card(id,deckId, title,description,auditInfo);
     }
@@ -44,7 +51,11 @@ public class Card {
         return new Card(deckId, title,description);
     }
 
-        @Override
+    public static Card createCard(Long deckId, Long cardId, String title, String desc) {
+        return new Card(deckId,cardId,title,desc);
+    }
+
+    @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;

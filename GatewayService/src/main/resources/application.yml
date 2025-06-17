@@ -27,6 +27,12 @@ spring:
                 postLogger: true
 #            - AddRequestHeader=user-request, user-request-header2   # 띄어쓰기 하나 하나가 중요하다. 주의!
 #            - AddResponseHeader=user-response, user-response-header2
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/order-service/**
+
+
         - id: board-service
           uri: http://localhost:8082/
           predicates:
@@ -37,16 +43,20 @@ spring:
 #  kafka:
 #    bootstrap-servers: evil55.shop:19092
 
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include:
-#          - refresh
-#          - health
-#          - info
-#          - bus-refresh
-#          - beans
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - refresh
+          - health
+          - info
+          - bus-refresh
+          - beans
+          - info
+          - metrics
+          - prometheus
+
 
 ## 유레카 서버에 현재 프로젝트를 등록
 eureka:

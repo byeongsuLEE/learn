@@ -11,14 +11,18 @@ import com.lbs.user.card.mapper.DeckMapper;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.Delete;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 작성자  : lbs
@@ -29,12 +33,15 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class JpaDeckRepositoryAdapter implements DeckRepository {
 
 
     private final DeckMapper deckMapper;
     private final CardMapper cardMapper;
     private final JpaDeckRepository jpaDeckRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+
 
     @Override
     public List<Deck> findBy() {
@@ -46,10 +53,11 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
 
 
     @Override
-    public Optional<Deck> findById(Long id) {
-        Optional<Deck> deck1 = jpaDeckRepository.findById(id).map(deckMapper::entityToDomain);
+    public Deck findById(Long id) {
+        Deck deck = jpaDeckRepository.findById(id).map(deckMapper::entityToDomain)
+                .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
 
-        return  deck1;
+        return  deck;
     }
 
     @Override
@@ -61,11 +69,42 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
 
     @Override
     public Deck update(Deck deck) {
-        DeckEntity deckEntity =  jpaDeckRepository.findById(deck.getId()).orElse(null);
-        if(deckEntity == null) return null;
+        DeckEntity deckEntity =  jpaDeckRepository.findById(deck.getId())
+                .orElseThrow(() -> new DeckNotFoundException(ErrorCode.DECK_NOT_FOUND));
+
+        // 방법 1. 모든 카드를 지우고 삽입한다.
+//        deckEntity.getCards().clear();
         deckEntity.updateDeck(deck);
+
+        //방법 2. 변경된 부분만 넣어주자.
+        //이유 : 방법 1은 수정버튼을 여러번 눌렀을 때 삭제와 삽입 연산이 n번씩 나가니까 힘들 것 같음
+        updateDeckCards(deck, deckEntity);
+
+
         Deck updatedDeck = deckMapper.entityToDomain(deckEntity);
         return updatedDeck;
+    }
+
+    private static void updateDeckCards(Deck deck, DeckEntity deckEntity) {
+        Map<Long, CardEntity> beforeCardMaps = deckEntity.getCards().stream().collect(Collectors.toMap(CardEntity::getId, Function.identity()));
+        List<CardEntity> updatedCardList = deck.getCards().stream().map(CardEntity::createCardEntity).toList();
+
+        for (CardEntity card : updatedCardList) {
+            //새로운 카드면 insert
+            if (beforeCardMaps.get(card.getId()) == null) {
+                deckEntity.addCard(card);
+            }
+            //수정된 카드면 update
+            else {
+                CardEntity cardEntity = beforeCardMaps.get(card.getId());
+                beforeCardMaps.remove(card.getId());
+                cardEntity.updateCard(card);
+            }
+        }
+
+        for (CardEntity deletedCard : beforeCardMaps.values()) {
+            deckEntity.deleteCard(deletedCard);
+        }
     }
 
     @Override
@@ -118,6 +157,34 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
         deckEntity.deleteCard(cardEntity);
 
         return cardId;
+    }
+
+   @Override
+    public void setDeckCardCount(){
+
+        List<DeckEntity> deckList = jpaDeckRepository.findAll();
+        for(DeckEntity deckEntity : deckList){
+            System.out.println("size : " + deckEntity.getCards().size());
+            deckEntity.updateCardCount(deckEntity.getCards().size());
+        }
+    }
+
+    @Override
+    public void updateCardCount() {
+       DeckEntity deck = jpaDeckRepository.findById(5L).orElseGet(null);
+       deck.updateCardCount(555555);
+        // 3. Redis 업데이트
+        String redisKey = "key:5";
+        redisTemplate.opsForValue().set(redisKey, 1234);
+        Object o = redisTemplate.opsForValue().get(redisKey);
+
+        log.info("reids exec 하기전 예상값 : null ,  실제값 : {}",o);
+
+        // 4. 조건부 예외 발생 (롤백 테스트용)
+
+            throw new RuntimeException("의도적인 예외 발생 - 트랜잭션 롤백 테스트");
+
+
     }
 
 
