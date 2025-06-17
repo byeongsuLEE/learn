@@ -52,10 +52,10 @@ pipeline {
                     } catch (Exception e) {
                         // 첫 번째 커밋인 경우 UserService만 배포
                         echo "첫 번째 커밋이거나 이전 커밋이 없습니다. UserService를 기본 배포합니다."
-                        changedServices = ['UserService']
+                        changedServices.add('UserService')
                     }
 
-                    if (changes && !changedServices) {
+                    if (changes && changes.size() > 0 && changedServices.size() == 0) {
                         // 개별 서비스 변경 감지만 수행 (Config Server가 설정 관리)
                         serviceMap.each { folder, dockerService ->
                             def hasServiceChanges = changes.any { it.startsWith("${folder}/") }
@@ -65,7 +65,7 @@ pipeline {
                             }
                         }
 
-                        if (!changedServices) {
+                        if (changedServices.size() == 0) {
                             echo "📝 변경된 파일이 서비스 폴더 외부에 있습니다."
                             echo "📋 변경된 파일: ${changes.join(', ')}"
                             echo "⚠️ 서비스 배포가 필요한 경우 수동으로 트리거하세요."
@@ -73,13 +73,15 @@ pipeline {
                     }
 
                     // 변경된 서비스가 없으면 강제로 UserService 배포 (테스트용)
-                    if (!changedServices) {
+                    if (changedServices.size() == 0) {
                         echo "⚠️ 변경된 서비스가 없습니다. UserService를 기본 배포합니다."
-                        changedServices = ['UserService']
+                        changedServices.add('UserService')
                     }
 
                     env.CHANGED_SERVICES = changedServices.join(',')
                     echo "🎯 배포할 서비스: ${env.CHANGED_SERVICES}"
+                    echo "🔍 디버그 - changedServices: ${changedServices}"
+                    echo "🔍 디버그 - changedServices.size(): ${changedServices.size()}"
                 }
             }
         }
@@ -248,6 +250,10 @@ pipeline {
             steps {
                 script {
                     echo '🏥 배포된 서비스 헬스체크 시작...'
+                    if (!env.CHANGED_SERVICES || env.CHANGED_SERVICES.trim() == '') {
+                        echo '⚠️ 배포된 서비스가 없습니다. 헬스체크를 건너뜁니다.'
+                        return
+                    }
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceHealthMap = [
                         'UserService': 'http://evil55.shop:8081/actuator/health',
@@ -293,7 +299,14 @@ pipeline {
             steps {
                 script {
                     echo '📊 배포된 서비스 상태 확인...'
-
+                    if (!env.CHANGED_SERVICES || env.CHANGED_SERVICES.trim() == '') {
+                        echo '⚠️ 배포된 서비스가 없습니다. 전체 상태만 확인합니다.'
+                        sh """
+                            echo "=== 전체 Docker Compose 서비스 상태 ==="
+                            docker-compose -f ${COMPOSE_FILE} ps
+                        """
+                        return
+                    }
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceMap = [
                         'UserService': 'user',
@@ -343,6 +356,14 @@ pipeline {
                 echo '🎉 서비스 배포 파이프라인 성공!'
                 echo "✅ 배포된 서비스: ${env.CHANGED_SERVICES}"
                 echo "🌐 서비스 접속 URL:"
+
+                if (!env.CHANGED_SERVICES || env.CHANGED_SERVICES.trim() == '') {
+                    echo "⚠️ 배포된 서비스가 없습니다."
+                    echo "📋 배포 정보:"
+                    echo "  - 빌드 번호: ${env.BUILD_NUMBER}"
+                    echo "  - 배포 시간: ${new Date()}"
+                    return
+                }
 
                 def services = env.CHANGED_SERVICES.split(',')
                 services.each { service ->

@@ -98,6 +98,7 @@ public class DeckController {
                 .body(ApiResponse.success(HttpStatus.OK,id + "제거가 완료되었습니다",id));
     }
 
+
     @DeleteMapping("/{id}/delete/{card_id}")
     public  ResponseEntity<ApiResponse<Long>> deleteCard(@PathVariable("id") Long id, @PathVariable("card_id") Long card_id){
         Long deleteCardId = deckService.deleteCard(id, card_id);
@@ -106,7 +107,7 @@ public class DeckController {
                 .body(ApiResponse.success(HttpStatus.OK,deleteCardId + "제거가 완료되었습니다",deleteCardId));
     }
 
-    // card : test
+    // card : test1
     @PostMapping("/{deck_id}/cards")
     public ResponseEntity<ApiResponse<CardResponseDto>> createCard(@PathVariable("deck_id") Long id , @RequestBody CreateCardRequestDto cardRequestDto){
         cardRequestDto.setDeckId(id);
