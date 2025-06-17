@@ -129,7 +129,7 @@ pipeline {
                                     echo '🔨 UserService Gradle 빌드 시작...'
                                     sh '''
                                         chmod +x gradlew
-                                        ./gradlew clean build
+                                        ./gradlew clean build -Dspring.profiles.active=jenkins
                                         echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
                                     '''
