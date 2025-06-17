@@ -100,12 +100,7 @@ pipeline {
                     echo "🔍 디버그 - changedServices.size(): ${changedServices.size()}"
                     echo "🔍 디버그 - env.CHANGED_SERVICES: ${env.CHANGED_SERVICES}"
 
-                    // 전역 변수로도 저장
-                    currentBuild.addOrReplaceAction(
-                        new ParametersAction([
-                            new StringParameterValue('CHANGED_SERVICES', servicesString)
-                        ])
-                    )
+
                 }
             }
         }
