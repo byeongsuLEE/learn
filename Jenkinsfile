@@ -4,12 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
         DOCKER_REGISTRY = 'evil55'
-
-        // 기존 docker-compose 파일 경로
         COMPOSE_FILE = '/home/lbs/docker-compose-back.yml'
-
-        // 변경된 서비스들을 저장할 변수
-        CHANGED_SERVICES = ''
     }
 
     stages {
@@ -33,65 +28,99 @@ pipeline {
 
                     def changedServices = []
                     def serviceMap = [
-                        'UserService': 'user',      // 사용자 비즈니스 로직
-                        'Gateway': 'gateway'        // API 게이트웨이
+                        'UserService': 'user',
+                        'GatewayService': 'gateway'
                     ]
 
                     // Git diff로 변경된 파일들 확인
                     def changes = []
                     try {
-                        changes = sh(
-                            script: "git diff --name-only HEAD~1 HEAD",
+                        // 더 안정적인 방법으로 변경 감지
+                        def gitLog = sh(
+                            script: "git log --oneline -1",
                             returnStdout: true
-                        ).trim().split('\n')
+                        ).trim()
+                        echo "최근 커밋: ${gitLog}"
 
-                        echo "📋 변경된 파일들:"
-                        changes.each { file ->
-                            echo "  - ${file}"
+                        // HEAD~1이 없을 수 있으므로 안전하게 처리
+                        def previousCommit = sh(
+                            script: "git rev-parse HEAD~1 2>/dev/null || echo 'NONE'",
+                            returnStdout: true
+                        ).trim()
+
+                        if (previousCommit == 'NONE') {
+                            echo "이전 커밋이 없습니다. 전체 서비스를 확인합니다."
+                            // 모든 서비스 폴더 확인
+                            serviceMap.each { folder, dockerService ->
+                                if (fileExists(folder)) {
+                                    changedServices.add(folder)
+                                    echo "✅ ${folder} 서비스 감지"
+                                }
+                            }
+                        } else {
+                            changes = sh(
+                                script: "git diff --name-only HEAD~1 HEAD",
+                                returnStdout: true
+                            ).trim().split('\n')
+
+                            echo "📋 변경된 파일들:"
+                            changes.each { file ->
+                                echo "  - ${file}"
+                            }
+
+                            // 변경된 파일에 따라 서비스 감지
+                            serviceMap.each { folder, dockerService ->
+                                def hasServiceChanges = changes.any { it.startsWith("${folder}/") }
+                                if (hasServiceChanges) {
+                                    changedServices.add(folder)
+                                    echo "✅ ${folder} 서비스 변경 감지"
+                                }
+                            }
                         }
                     } catch (Exception e) {
-                        // 첫 번째 커밋인 경우 UserService만 배포
-                        echo "첫 번째 커밋이거나 이전 커밋이 없습니다. UserService를 기본 배포합니다."
+                        echo "Git 변경 감지 중 오류 발생: ${e.message}"
+                        echo "기본값으로 UserService를 배포합니다."
                         changedServices.add('UserService')
                     }
 
-                    if (changes && changes.size() > 0 && changedServices.size() == 0) {
-                        // 개별 서비스 변경 감지만 수행 (Config Server가 설정 관리)
-                        serviceMap.each { folder, dockerService ->
-                            def hasServiceChanges = changes.any { it.startsWith("${folder}/") }
-                            if (hasServiceChanges) {
-                                changedServices.add(folder)
-                                echo "✅ ${folder} 서비스 변경 감지"
-                            }
-                        }
-
-                        if (changedServices.size() == 0) {
-                            echo "📝 변경된 파일이 서비스 폴더 외부에 있습니다."
-                            echo "📋 변경된 파일: ${changes.join(', ')}"
-                            echo "⚠️ 서비스 배포가 필요한 경우 수동으로 트리거하세요."
-                        }
-                    }
-
-                    // 변경된 서비스가 없으면 강제로 UserService 배포 (테스트용)
-                    if (changedServices.size() == 0) {
+                    // 변경된 서비스가 없으면 강제로 UserService 배포
+                    if (changedServices.isEmpty()) {
                         echo "⚠️ 변경된 서비스가 없습니다. UserService를 기본 배포합니다."
                         changedServices.add('UserService')
                     }
+
+                    // 환경 변수 설정을 더 명확하게
                     def servicesString = changedServices.join(',')
+
+
                     env.CHANGED_SERVICES = servicesString
+                    echo "servicesString 값: ${servicesString}"
                     echo "🎯 배포할 서비스: ${env.CHANGED_SERVICES}"
                     echo "🔍 디버그 - changedServices: ${changedServices}"
                     echo "🔍 디버그 - changedServices.size(): ${changedServices.size()}"
+                    echo "🔍 디버그 - env.CHANGED_SERVICES: ${env.CHANGED_SERVICES}"
+
+                    // 전역 변수로도 저장
+                    currentBuild.addOrReplaceAction(
+                        new ParametersAction([
+                            new StringParameterValue('CHANGED_SERVICES', servicesString)
+                        ])
+                    )
                 }
             }
         }
 
         stage('Build and Deploy Services') {
+            when {
+                expression {
+                    return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES.trim() != ''
+                }
+            }
             parallel {
                 stage('UserService Deploy') {
                     when {
                         expression {
-                            env.CHANGED_SERVICES?.contains('UserService')
+                            return env.CHANGED_SERVICES?.contains('UserService')
                         }
                     }
                     stages {
@@ -120,10 +149,8 @@ pipeline {
 
                                         echo "🐳 UserService Docker 이미지 빌드: ${imageName}"
 
-                                        // Docker 이미지 빌드
                                         sh "docker build -t ${imageName} -t ${latestImageName} ."
 
-                                        // Docker Hub 로그인 및 푸시
                                         sh '''
                                             echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                                         '''
@@ -147,7 +174,7 @@ pipeline {
                                         # 기존 컨테이너 제거
                                         docker-compose -f ${COMPOSE_FILE} rm -f user || true
 
-                                        # 기존 이미지 제거 (디스크 공간 확보)
+                                        # 기존 이미지 제거
                                         docker rmi ${DOCKER_REGISTRY}/user:latest || true
 
                                         # 새 이미지 pull
@@ -170,13 +197,13 @@ pipeline {
                 stage('Gateway Deploy') {
                     when {
                         expression {
-                            env.CHANGED_SERVICES?.contains('Gateway')
+                            return env.CHANGED_SERVICES?.contains('GatewayService')
                         }
                     }
                     stages {
                         stage('Gateway Build') {
                             steps {
-                                dir('Gateway') {
+                                dir('GatewayService') {
                                     echo '🔨 Gateway Gradle 빌드 시작...'
                                     sh '''
                                         chmod +x gradlew
@@ -191,7 +218,7 @@ pipeline {
 
                         stage('Gateway Docker Build & Push') {
                             steps {
-                                dir('Gateway') {
+                                dir('GatewayService') {
                                     script {
                                         def imageTag = "${env.BUILD_NUMBER}"
                                         def imageName = "${DOCKER_REGISTRY}/gateway:${imageTag}"
@@ -247,17 +274,20 @@ pipeline {
         }
 
         stage('Health Check') {
+            when {
+                expression {
+                    return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES.trim() != ''
+                }
+            }
             steps {
                 script {
                     echo '🏥 배포된 서비스 헬스체크 시작...'
-                    if (!env.CHANGED_SERVICES || env.CHANGED_SERVICES.trim() == '') {
-                        echo '⚠️ 배포된 서비스가 없습니다. 헬스체크를 건너뜁니다.'
-                        return
-                    }
+                    echo "헬스체크할 서비스: ${env.CHANGED_SERVICES}"
+
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceHealthMap = [
                         'UserService': 'http://evil55.shop:8081/actuator/health',
-                        'Gateway': 'http://evil55.shop:8000/actuator/health'
+                        'GatewayService': 'http://evil55.shop:8000/actuator/health'
                     ]
 
                     services.each { service ->
@@ -298,20 +328,8 @@ pipeline {
         stage('Service Status Check') {
             steps {
                 script {
-                    echo '📊 배포된 서비스 상태 확인...'
-                    if (!env.CHANGED_SERVICES || env.CHANGED_SERVICES.trim() == '') {
-                        echo '⚠️ 배포된 서비스가 없습니다. 전체 상태만 확인합니다.'
-                        sh """
-                            echo "=== 전체 Docker Compose 서비스 상태 ==="
-                            docker-compose -f ${COMPOSE_FILE} ps
-                        """
-                        return
-                    }
-                    def services = env.CHANGED_SERVICES.split(',')
-                    def serviceMap = [
-                        'UserService': 'user',
-                        'Gateway': 'gateway'
-                    ]
+                    echo '📊 서비스 상태 확인...'
+                    echo "확인할 서비스: ${env.CHANGED_SERVICES ?: '없음'}"
 
                     sh """
                         echo "=== 전체 Docker Compose 서비스 상태 ==="
@@ -319,18 +337,28 @@ pipeline {
                         echo ""
                     """
 
-                    services.each { service ->
-                        def dockerService = serviceMap[service]
-                        if (dockerService) {
-                            sh """
-                                echo "=== ${service} (${dockerService}) 상세 정보 ==="
-                                docker-compose -f ${COMPOSE_FILE} ps ${dockerService}
-                                echo ""
-                                echo "--- ${service} 최근 로그 (20줄) ---"
-                                docker-compose -f ${COMPOSE_FILE} logs --tail=20 ${dockerService} || true
-                                echo ""
-                            """
+                    if (env.CHANGED_SERVICES != null && env.CHANGED_SERVICES.trim() != '') {
+                        def services = env.CHANGED_SERVICES.split(',')
+                        def serviceMap = [
+                            'UserService': 'user',
+                            'GatewayService': 'gateway'
+                        ]
+
+                        services.each { service ->
+                            def dockerService = serviceMap[service]
+                            if (dockerService) {
+                                sh """
+                                    echo "=== ${service} (${dockerService}) 상세 정보 ==="
+                                    docker-compose -f ${COMPOSE_FILE} ps ${dockerService}
+                                    echo ""
+                                    echo "--- ${service} 최근 로그 (20줄) ---"
+                                    docker-compose -f ${COMPOSE_FILE} logs --tail=20 ${dockerService} || true
+                                    echo ""
+                                """
+                            }
                         }
+                    } else {
+                        echo "⚠️ 배포된 서비스가 없으므로 상세 정보를 표시하지 않습니다."
                     }
                 }
             }
@@ -354,25 +382,22 @@ pipeline {
         success {
             script {
                 echo '🎉 서비스 배포 파이프라인 성공!'
-                echo "✅ 배포된 서비스: ${env.CHANGED_SERVICES}"
+                def deployedServices = env.CHANGED_SERVICES ?: 'none'
+                echo "✅ 배포된 서비스: ${deployedServices}"
                 echo "🌐 서비스 접속 URL:"
 
-                if (!env.CHANGED_SERVICES || env.CHANGED_SERVICES.trim() == '') {
+                if (deployedServices == 'none' || deployedServices.trim() == '') {
                     echo "⚠️ 배포된 서비스가 없습니다."
-                    echo "📋 배포 정보:"
-                    echo "  - 빌드 번호: ${env.BUILD_NUMBER}"
-                    echo "  - 배포 시간: ${new Date()}"
-                    return
-                }
-
-                def services = env.CHANGED_SERVICES.split(',')
-                services.each { service ->
-                    if (service == 'UserService') {
-                        echo "  - UserService API: https://evil55.shop/api/user-service"
-                        echo "  - UserService Health: http://evil55.shop:8081/actuator/health"
-                    } else if (service == 'Gateway') {
-                        echo "  - Gateway: https://evil55.shop"
-                        echo "  - Gateway Health: http://evil55.shop:8000/actuator/health"
+                } else {
+                    def services = deployedServices.split(',')
+                    services.each { service ->
+                        if (service == 'UserService') {
+                            echo "  - UserService API: https://evil55.shop/api/user-service"
+                            echo "  - UserService Health: http://evil55.shop:8081/actuator/health"
+                        } else if (service == 'GatewayService') {
+                            echo "  - Gateway: https://evil55.shop"
+                            echo "  - Gateway Health: http://evil55.shop:8000/actuator/health"
+                        }
                     }
                 }
 
@@ -384,9 +409,8 @@ pipeline {
         failure {
             script {
                 echo '❌ 서비스 배포 파이프라인 실패!!'
-                echo "❌ 실패한 서비스: ${env.CHANGED_SERVICES}"
+                echo "❌ 실패한 서비스: ${env.CHANGED_SERVICES ?: 'none'}"
 
-                // 실패 시 디버깅 정보 수집
                 sh '''
                     echo "=== 실패 시점 전체 컨테이너 상태 ==="
                     docker ps -a
@@ -400,7 +424,6 @@ pipeline {
             }
         }
         always {
-            // 빌드 후 정리 작업
             sh '''
                 docker logout || true
             '''
