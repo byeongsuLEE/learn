@@ -107,7 +107,7 @@ public class DeckController {
                 .body(ApiResponse.success(HttpStatus.OK,deleteCardId + "제거가 완료되었습니다",deleteCardId));
     }
 
-    // card : test4
+    // card : test5
     @PostMapping("/{deck_id}/cards")
     public ResponseEntity<ApiResponse<CardResponseDto>> createCard(@PathVariable("deck_id") Long id , @RequestBody CreateCardRequestDto cardRequestDto){
         cardRequestDto.setDeckId(id);

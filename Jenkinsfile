@@ -4,7 +4,7 @@ pipeline {
     tools {
         jdk 'JDK17'  // Jenkins에 설정된 JDK 17 이름
     }
-    
+
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
         DOCKER_REGISTRY = 'evil55'
@@ -129,7 +129,7 @@ pipeline {
                                     echo '🔨 UserService Gradle 빌드 시작...'
                                     sh '''
                                         chmod +x gradlew
-                                        ./gradlew clean build -x test
+                                        ./gradlew clean build
                                         echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
                                     '''
@@ -206,7 +206,7 @@ pipeline {
                                     echo '🔨 Gateway Gradle 빌드 시작...'
                                     sh '''
                                         chmod +x gradlew
-                                        ./gradlew clean build -x test
+                                        ./gradlew clean build
                                         echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
                                     '''
