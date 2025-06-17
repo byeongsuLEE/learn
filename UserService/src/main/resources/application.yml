@@ -85,7 +85,6 @@ management:
 #  port: 8081
 
 
----
 #spring:
 #  config:
 #    activate:
