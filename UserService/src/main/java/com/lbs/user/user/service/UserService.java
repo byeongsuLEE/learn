@@ -9,5 +9,7 @@ public interface UserService {
     User readUser(Long id);
     User updateUser(User user);
     User deleteUser(String id);
+
+    User readUserByEmail(String email);
 }
 

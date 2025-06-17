@@ -25,8 +25,8 @@ public class Deck {
      String category;
      String tag;
      AuditInfo auditInfo;
-        List<Card> cards = new ArrayList<>();
-
+     List<Card> cards = new ArrayList<>();
+     int cardCount ;
     private Deck(Long id, String title, String desc, String category, String tag, List<Card> cards ) {
          this.id = id;
          this.title = title;
@@ -54,6 +54,18 @@ public class Deck {
         this.tag = tag;
     }
 
+    public Deck(Long id, String title, String desc, String category, String tag, AuditInfo auditInfo, List<Card> cards, int cardCount) {
+
+        this.id = id;
+        this.title = title;
+        this.desc = desc;
+        this.category = category;
+        this.tag = tag;
+        this.auditInfo = auditInfo;
+        this.cards = cards;
+
+    }
+
     //
 
 
@@ -78,7 +90,16 @@ public class Deck {
          return new Deck(id, title, desc, category, tag,auditInfo,cards);
      }
 
-     public void addAuditInfo(AuditInfo auditInfo) {
+    public static Deck createDeck(Long id, String title, String desc, String category, String tag, List<Card> list) {
+        return  new Deck(id, title, desc, category, tag,list);
+    }
+
+    public static Deck createDeck(Long id, String title, String desc, String category, String tag, AuditInfo auditInfo, List<Card> cards, int cardCount) {
+        return new Deck(id, title, desc, category, tag,auditInfo,cards,cardCount);
+
+    }
+
+    public void addAuditInfo(AuditInfo auditInfo) {
         this.auditInfo = auditInfo;
      }
 
