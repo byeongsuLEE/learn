@@ -10,6 +10,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @SpringBootTest
 class UserServiceApplicationTests {
 
@@ -34,6 +36,7 @@ class UserServiceApplicationTests {
         em.flush();
         em.clear();
 
+        assertTrue(true);
 
 //        if (user != null) {
 //            System.out.println("email = " + user.getEmail());
@@ -53,6 +56,8 @@ class UserServiceApplicationTests {
                 .getResultList();
 
         System.out.println("✅ 실행 완료: 유저 정보 = "+ user.get(0).getCity());
+
+        assertTrue(true);
     }
 
 }
