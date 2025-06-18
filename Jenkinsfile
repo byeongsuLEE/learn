@@ -276,7 +276,7 @@ pipeline {
                         if (healthUrl) {
                             echo "🔍 ${service} 헬스체크 중... (URL: ${healthUrl})"
 
-                            def maxAttempts = 5
+                            def maxAttempts = 20
                             def currentAttempt = 0
                             def isHealthy = false
 
