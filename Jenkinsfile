@@ -92,15 +92,12 @@ pipeline {
                     // 환경 변수 설정을 더 명확하게
                     def servicesString = changedServices.join(',')
 
-
                     env.CHANGED_SERVICES = servicesString
                     echo "servicesString 값: ${servicesString}"
                     echo "🎯 배포할 서비스: ${env.CHANGED_SERVICES}"
                     echo "🔍 디버그 - changedServices: ${changedServices}"
                     echo "🔍 디버그 - changedServices.size(): ${changedServices.size()}"
                     echo "🔍 디버그 - env.CHANGED_SERVICES: ${env.CHANGED_SERVICES}"
-
-
                 }
             }
         }
@@ -259,12 +256,8 @@ pipeline {
             }
         }
 
+        // 헬스체크 스테이지 - 올바른 위치로 이동
         stage('Health Check') {
-            when {
-                expression {
-                    return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES.trim() != ''
-                }
-            }
             steps {
                 script {
                     echo '🏥 배포된 서비스 헬스체크 시작...'
@@ -272,40 +265,65 @@ pipeline {
 
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceHealthMap = [
-                        'UserService': 'http://evil55.shop:8081/actuator/health',
+                        'UserService': 'http://evil55.shop/api/user-service/actuator/health',
                         'GatewayService': 'http://evil55.shop:8000/actuator/health'
                     ]
+
+                    def failedServices = []
 
                     services.each { service ->
                         def healthUrl = serviceHealthMap[service]
                         if (healthUrl) {
                             echo "🔍 ${service} 헬스체크 중... (URL: ${healthUrl})"
-                            timeout(time: 2, unit: 'MINUTES') {
-                                waitUntil {
-                                    script {
-                                        try {
-                                            def response = sh(
-                                                script: "curl -s -o /dev/null -w '%{http_code}' ${healthUrl}",
-                                                returnStdout: true
-                                            ).trim()
 
-                                            if (response == '200') {
-                                                echo "✅ ${service} 헬스체크 성공!"
-                                                return true
-                                            } else {
-                                                echo "⏳ ${service} 헬스체크 대기중... (응답코드: ${response})"
-                                                sleep(10)
-                                                return false
-                                            }
-                                        } catch (Exception e) {
-                                            echo "⏳ ${service} 헬스체크 대기중... (연결 실패)"
+                            def maxAttempts = 5
+                            def currentAttempt = 0
+                            def isHealthy = false
+
+                            while (currentAttempt < maxAttempts && !isHealthy) {
+                                currentAttempt++
+                                echo "📋 ${service} 헬스체크 시도 ${currentAttempt}/${maxAttempts}"
+
+                                try {
+                                    def response = sh(
+                                        script: "curl -s -o /dev/null -w '%{http_code}' ${healthUrl}",
+                                        returnStdout: true
+                                    ).trim()
+
+                                    if (response == '200') {
+                                        echo "✅ ${service} 헬스체크 성공! (${currentAttempt}번째 시도)"
+                                        isHealthy = true
+                                    } else {
+                                        echo "⏳ ${service} 헬스체크 실패 (응답코드: ${response})"
+                                        if (currentAttempt < maxAttempts) {
+                                            echo "⏳ 10초 후 재시도..."
                                             sleep(10)
-                                            return false
                                         }
+                                    }
+                                } catch (Exception e) {
+                                    echo "⏳ ${service} 헬스체크 실패 (연결 실패: ${e.message})"
+                                    if (currentAttempt < maxAttempts) {
+                                        echo "⏳ 10초 후 재시도..."
+                                        sleep(10)
                                     }
                                 }
                             }
+
+                            if (!isHealthy) {
+                                failedServices.add(service)
+                                echo "❌ ${service} 헬스체크 최종 실패 (${maxAttempts}번 시도 후 포기)"
+
+                                // Docker 이미지 정리
+                                cleanupFailedService(service)
+                            }
                         }
+                    }
+
+                    // 실패한 서비스가 있으면 빌드 전체 실패
+                    if (!failedServices.isEmpty()) {
+                        def failedServicesString = failedServices.join(', ')
+                        echo "💥 헬스체크 실패한 서비스: ${failedServicesString}"
+                        error("헬스체크 실패로 인한 배포 중단: ${failedServicesString}")
                     }
                 }
             }
@@ -415,5 +433,37 @@ pipeline {
             '''
             echo '🧹 파이프라인 정리 작업 완료'
         }
+    }
+}
+
+// 실패한 서비스의 Docker 이미지 정리 함수
+def cleanupFailedService(String serviceName) {
+    try {
+        echo "🗑️ ${serviceName} 실패한 컨테이너 및 이미지 정리 중..."
+
+        def serviceMap = [
+            'UserService': 'user',
+            'GatewayService': 'gateway'
+        ]
+
+        def dockerService = serviceMap[serviceName]
+        if (dockerService) {
+            sh """
+                # 실패한 컨테이너 중지 및 제거
+                docker-compose -f ${COMPOSE_FILE} stop ${dockerService} || true
+                docker-compose -f ${COMPOSE_FILE} rm -f ${dockerService} || true
+
+                # 실패한 이미지 제거 (현재 배포 시도한 이미지)
+                docker rmi ${DOCKER_REGISTRY}/${dockerService}:latest || true
+                docker rmi ${DOCKER_REGISTRY}/${dockerService}:${env.BUILD_NUMBER} || true
+
+                # dangling 이미지 정리
+                docker image prune -f
+            """
+        }
+
+        echo "✅ ${serviceName} 정리 완료"
+    } catch (Exception e) {
+        echo "❌ ${serviceName} 정리 실패: ${e.message}"
     }
 }
