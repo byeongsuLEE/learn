@@ -286,7 +286,7 @@ pipeline {
 
                                 try {
                                     def response = sh(
-                                        script: "curl -s -o /dev/null -w '%{http_code}' ${healthUrl}",
+                                        script: "curl -s -L -o /dev/null -w '%{http_code}' ${healthUrl}",
                                         returnStdout: true
                                     ).trim()
 
@@ -296,15 +296,15 @@ pipeline {
                                     } else {
                                         echo "⏳ ${service} 헬스체크 실패 (응답코드: ${response})"
                                         if (currentAttempt < maxAttempts) {
-                                            echo "⏳ 10초 후 재시도..."
-                                            sleep(10)
+                                            echo "⏳ 3초 후 재시도..."
+                                            sleep(3)
                                         }
                                     }
                                 } catch (Exception e) {
                                     echo "⏳ ${service} 헬스체크 실패 (연결 실패: ${e.message})"
                                     if (currentAttempt < maxAttempts) {
-                                        echo "⏳ 10초 후 재시도..."
-                                        sleep(10)
+                                        echo "⏳ 3초 후 재시도..."
+                                        sleep(3)
                                     }
                                 }
                             }
@@ -328,6 +328,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Service Status Check') {
             steps {
