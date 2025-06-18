@@ -451,12 +451,12 @@ def cleanupFailedService(String serviceName) {
         if (dockerService) {
             sh """
                 # 실패한 컨테이너 중지 및 제거
-                docker-compose -f ${COMPOSE_FILE} stop ${dockerService} || true
-                docker-compose -f ${COMPOSE_FILE} rm -f ${dockerService} || true
+                # docker-compose -f ${COMPOSE_FILE} stop ${dockerService} || true
+                # docker-compose -f ${COMPOSE_FILE} rm -f ${dockerService} || true
 
                 # 실패한 이미지 제거 (현재 배포 시도한 이미지)
-                docker rmi ${DOCKER_REGISTRY}/${dockerService}:latest || true
-                docker rmi ${DOCKER_REGISTRY}/${dockerService}:${env.BUILD_NUMBER} || true
+                # docker rmi ${DOCKER_REGISTRY}/${dockerService}:latest || true
+                # docker rmi ${DOCKER_REGISTRY}/${dockerService}:${env.BUILD_NUMBER} || true
 
                 # dangling 이미지 정리
                 docker image prune -f
