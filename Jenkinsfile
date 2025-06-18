@@ -296,15 +296,15 @@ pipeline {
                                     } else {
                                         echo "⏳ ${service} 헬스체크 실패 (응답코드: ${response})"
                                         if (currentAttempt < maxAttempts) {
-                                            echo "⏳ 3초 후 재시도..."
-                                            sleep(3)
+                                            echo "⏳ 10초 후 재시도..."
+                                            sleep(10)
                                         }
                                     }
                                 } catch (Exception e) {
                                     echo "⏳ ${service} 헬스체크 실패 (연결 실패: ${e.message})"
                                     if (currentAttempt < maxAttempts) {
-                                        echo "⏳ 3초 후 재시도..."
-                                        sleep(3)
+                                        echo "⏳ 10초 후 재시도..."
+                                        sleep(10)
                                     }
                                 }
                             }
