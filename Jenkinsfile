@@ -105,163 +105,154 @@ pipeline {
             }
         }
 
-        stage('Build and Deploy Services') {
+        stage('UserService Deploy') {
             when {
                 expression {
-                    return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES.trim() != ''
+                    return env.CHANGED_SERVICES?.contains('UserService')
                 }
             }
-            parallel {
-                stage('UserService Deploy') {
-                    when {
-                        expression {
-                            return env.CHANGED_SERVICES?.contains('UserService')
+            stages {
+                stage('UserService Build') {
+                    steps {
+                        dir('UserService') {
+                            echo '🔨 UserService Gradle 빌드 시작...'
+                            sh '''
+                                chmod +x gradlew
+                                ./gradlew clean build -Dspring.profiles.active=jenkins
+                                echo "빌드된 JAR 파일 확인:"
+                                ls -la build/libs/
+                            '''
+                            echo '✅ UserService 빌드 완료!'
                         }
                     }
-                    stages {
-                        stage('UserService Build') {
-                            steps {
-                                dir('UserService') {
-                                    echo '🔨 UserService Gradle 빌드 시작...'
-                                    sh '''
-                                        chmod +x gradlew
-                                        ./gradlew clean build -Dspring.profiles.active=jenkins
-                                        echo "빌드된 JAR 파일 확인:"
-                                        ls -la build/libs/
-                                    '''
-                                    echo '✅ UserService 빌드 완료!'
-                                }
+                }
+
+                stage('UserService Docker Build & Push') {
+                    steps {
+                        dir('UserService') {
+                            script {
+                                def imageTag = "${env.BUILD_NUMBER}"
+                                def imageName = "${DOCKER_REGISTRY}/user:${imageTag}"
+                                def latestImageName = "${DOCKER_REGISTRY}/user:latest"
+
+                                echo "🐳 UserService Docker 이미지 빌드: ${imageName}"
+
+                                sh "docker build -t ${imageName} -t ${latestImageName} ."
+
+                                sh '''
+                                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                                '''
+                                sh "docker push ${imageName}"
+                                sh "docker push ${latestImageName}"
+
+                                echo '✅ UserService Docker Hub 푸시 완료!'
                             }
                         }
+                    }
+                }
 
-                        stage('UserService Docker Build & Push') {
-                            steps {
-                                dir('UserService') {
-                                    script {
-                                        def imageTag = "${env.BUILD_NUMBER}"
-                                        def imageName = "${DOCKER_REGISTRY}/user:${imageTag}"
-                                        def latestImageName = "${DOCKER_REGISTRY}/user:latest"
+                stage('UserService Deploy') {
+                    steps {
+                        script {
+                            echo '🚀 UserService 배포 시작...'
+                            sh """
+                                # UserService 컨테이너 중지
+                                docker-compose -f ${COMPOSE_FILE} stop user || true
 
-                                        echo "🐳 UserService Docker 이미지 빌드: ${imageName}"
+                                # 기존 컨테이너 제거
+                                docker-compose -f ${COMPOSE_FILE} rm -f user || true
 
-                                        sh "docker build -t ${imageName} -t ${latestImageName} ."
+                                # 기존 이미지 제거
+                                docker rmi ${DOCKER_REGISTRY}/user:latest || true
 
-                                        sh '''
-                                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                                        '''
-                                        sh "docker push ${imageName}"
-                                        sh "docker push ${latestImageName}"
+                                # 새 이미지 pull
+                                docker pull ${DOCKER_REGISTRY}/user:latest
 
-                                        echo '✅ UserService Docker Hub 푸시 완료!'
-                                    }
-                                }
-                            }
+                                # UserService 컨테이너 시작
+                                docker-compose -f ${COMPOSE_FILE} up -d user
+
+                                # 컨테이너 상태 확인
+                                sleep 10
+                                docker-compose -f ${COMPOSE_FILE} ps user
+                            """
+                            echo '✅ UserService 배포 완료!'
                         }
+                    }
+                }
+            }
+        }
 
-                        stage('UserService Deploy') {
-                            steps {
-                                script {
-                                    echo '🚀 UserService 배포 시작...'
-                                    sh """
-                                        # UserService 컨테이너 중지
-                                        docker-compose -f ${COMPOSE_FILE} stop user || true
+        stage('Gateway Deploy') {
+            when {
+                expression {
+                    return env.CHANGED_SERVICES?.contains('GatewayService')
+                }
+            }
+            stages {
+                stage('Gateway Build') {
+                    steps {
+                        dir('GatewayService') {
+                            echo '🔨 Gateway Gradle 빌드 시작...'
+                            sh '''
+                                chmod +x gradlew
+                                ./gradlew clean build
+                                echo "빌드된 JAR 파일 확인:"
+                                ls -la build/libs/
+                            '''
+                            echo '✅ Gateway 빌드 완료!'
+                        }
+                    }
+                }
 
-                                        # 기존 컨테이너 제거
-                                        docker-compose -f ${COMPOSE_FILE} rm -f user || true
+                stage('Gateway Docker Build & Push') {
+                    steps {
+                        dir('GatewayService') {
+                            script {
+                                def imageTag = "${env.BUILD_NUMBER}"
+                                def imageName = "${DOCKER_REGISTRY}/gateway:${imageTag}"
+                                def latestImageName = "${DOCKER_REGISTRY}/gateway:latest"
 
-                                        # 기존 이미지 제거
-                                        docker rmi ${DOCKER_REGISTRY}/user:latest || true
+                                echo "🐳 Gateway Docker 이미지 빌드: ${imageName}"
 
-                                        # 새 이미지 pull
-                                        docker pull ${DOCKER_REGISTRY}/user:latest
+                                sh "docker build -t ${imageName} -t ${latestImageName} ."
 
-                                        # UserService 컨테이너 시작
-                                        docker-compose -f ${COMPOSE_FILE} up -d user
+                                sh '''
+                                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                                '''
+                                sh "docker push ${imageName}"
+                                sh "docker push ${latestImageName}"
 
-                                        # 컨테이너 상태 확인
-                                        sleep 10
-                                        docker-compose -f ${COMPOSE_FILE} ps user
-                                    """
-                                    echo '✅ UserService 배포 완료!'
-                                }
+                                echo '✅ Gateway Docker Hub 푸시 완료!'
                             }
                         }
                     }
                 }
 
                 stage('Gateway Deploy') {
-                    when {
-                        expression {
-                            return env.CHANGED_SERVICES?.contains('GatewayService')
-                        }
-                    }
-                    stages {
-                        stage('Gateway Build') {
-                            steps {
-                                dir('GatewayService') {
-                                    echo '🔨 Gateway Gradle 빌드 시작...'
-                                    sh '''
-                                        chmod +x gradlew
-                                        ./gradlew clean build
-                                        echo "빌드된 JAR 파일 확인:"
-                                        ls -la build/libs/
-                                    '''
-                                    echo '✅ Gateway 빌드 완료!'
-                                }
-                            }
-                        }
+                    steps {
+                        script {
+                            echo '🚀 Gateway 배포 시작...'
+                            sh """
+                                # Gateway 컨테이너 중지
+                                docker-compose -f ${COMPOSE_FILE} stop gateway || true
 
-                        stage('Gateway Docker Build & Push') {
-                            steps {
-                                dir('GatewayService') {
-                                    script {
-                                        def imageTag = "${env.BUILD_NUMBER}"
-                                        def imageName = "${DOCKER_REGISTRY}/gateway:${imageTag}"
-                                        def latestImageName = "${DOCKER_REGISTRY}/gateway:latest"
+                                # 기존 컨테이너 제거
+                                docker-compose -f ${COMPOSE_FILE} rm -f gateway || true
 
-                                        echo "🐳 Gateway Docker 이미지 빌드: ${imageName}"
+                                # 기존 이미지 제거
+                                docker rmi ${DOCKER_REGISTRY}/gateway:latest || true
 
-                                        sh "docker build -t ${imageName} -t ${latestImageName} ."
+                                # 새 이미지 pull
+                                docker pull ${DOCKER_REGISTRY}/gateway:latest
 
-                                        sh '''
-                                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                                        '''
-                                        sh "docker push ${imageName}"
-                                        sh "docker push ${latestImageName}"
+                                # Gateway 컨테이너 시작
+                                docker-compose -f ${COMPOSE_FILE} up -d gateway
 
-                                        echo '✅ Gateway Docker Hub 푸시 완료!'
-                                    }
-                                }
-                            }
-                        }
-
-                        stage('Gateway Deploy') {
-                            steps {
-                                script {
-                                    echo '🚀 Gateway 배포 시작...'
-                                    sh """
-                                        # Gateway 컨테이너 중지
-                                        docker-compose -f ${COMPOSE_FILE} stop gateway || true
-
-                                        # 기존 컨테이너 제거
-                                        docker-compose -f ${COMPOSE_FILE} rm -f gateway || true
-
-                                        # 기존 이미지 제거
-                                        docker rmi ${DOCKER_REGISTRY}/gateway:latest || true
-
-                                        # 새 이미지 pull
-                                        docker pull ${DOCKER_REGISTRY}/gateway:latest
-
-                                        # Gateway 컨테이너 시작
-                                        docker-compose -f ${COMPOSE_FILE} up -d gateway
-
-                                        # 컨테이너 상태 확인
-                                        sleep 10
-                                        docker-compose -f ${COMPOSE_FILE} ps gateway
-                                    """
-                                    echo '✅ Gateway 배포 완료!'
-                                }
-                            }
+                                # 컨테이너 상태 확인
+                                sleep 10
+                                docker-compose -f ${COMPOSE_FILE} ps gateway
+                            """
+                            echo '✅ Gateway 배포 완료!'
                         }
                     }
                 }
