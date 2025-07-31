@@ -6,6 +6,7 @@ import com.lbs.user.card.mapper.CardMapper;
 import com.lbs.user.user.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ public class DeckEntity extends BaseEntity {
     private String category;
 
     private int cardCount;
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CardEntity> cards = new ArrayList<>();
 
