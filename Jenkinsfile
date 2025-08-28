@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'JDK17'  // Jenkins에 설정된 JDK 17 이름
-    }
-
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
         DOCKER_REGISTRY = 'evil55'
@@ -87,15 +83,14 @@ pipeline {
                         changedServices.add('UserService')
                     }
 
-                    // 변경된 서비스가 없으면 강제로 UserService 배포
+                    // 변경사항이 없을 때 처리
                     if (changedServices.isEmpty()) {
-                        echo "⚠️ 변경된 서비스가 없습니다. UserService를 기본 배포합니다."
-                        changedServices.add('UserService')
+                        echo "✅ 변경된 서비스가 없습니다. 배포를 건너뜁니다."
+                        echo "📋 확인된 서비스 폴더: ${serviceMap.keySet()}"
                     }
 
                     // 환경 변수 설정을 더 명확하게
                     def servicesString = changedServices.join(',')
-
 
                     env.CHANGED_SERVICES = servicesString
                     echo "servicesString 값: ${servicesString}"
@@ -103,175 +98,165 @@ pipeline {
                     echo "🔍 디버그 - changedServices: ${changedServices}"
                     echo "🔍 디버그 - changedServices.size(): ${changedServices.size()}"
                     echo "🔍 디버그 - env.CHANGED_SERVICES: ${env.CHANGED_SERVICES}"
-
-
                 }
             }
         }
 
-        stage('Build and Deploy Services') {
+        stage('UserService Deploy') {
             when {
                 expression {
-                    return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES.trim() != ''
+                    return env.CHANGED_SERVICES?.contains('UserService')
                 }
             }
-            parallel {
-                stage('UserService Deploy') {
-                    when {
-                        expression {
-                            return env.CHANGED_SERVICES?.contains('UserService')
+            stages {
+                stage('UserService Build') {
+                    steps {
+                        dir('UserService') {
+                            echo '🔨 UserService Gradle 빌드 시작...'
+                            sh '''
+                                chmod +x gradlew
+                                ./gradlew clean build -Dspring.profiles.active=jenkins
+                                echo "빌드된 JAR 파일 확인:"
+                                ls -la build/libs/
+                            '''
+                            echo '✅ UserService 빌드 완료!'
                         }
                     }
-                    stages {
-                        stage('UserService Build') {
-                            steps {
-                                dir('UserService') {
-                                    echo '🔨 UserService Gradle 빌드 시작...'
-                                    sh '''
-                                        chmod +x gradlew
-                                        ./gradlew clean build
-                                        echo "빌드된 JAR 파일 확인:"
-                                        ls -la build/libs/
-                                    '''
-                                    echo '✅ UserService 빌드 완료!'
-                                }
+                }
+
+                stage('UserService Docker Build & Push') {
+                    steps {
+                        dir('UserService') {
+                            script {
+                                def imageTag = "${env.BUILD_NUMBER}"
+                                def imageName = "${DOCKER_REGISTRY}/user:${imageTag}"
+                                def latestImageName = "${DOCKER_REGISTRY}/user:latest"
+
+                                echo "🐳 UserService Docker 이미지 빌드: ${imageName}"
+
+                                sh "docker build -t ${imageName} -t ${latestImageName} ."
+
+                                sh '''
+                                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                                '''
+                                sh "docker push ${imageName}"
+                                sh "docker push ${latestImageName}"
+
+                                echo '✅ UserService Docker Hub 푸시 완료!'
                             }
                         }
+                    }
+                }
 
-                        stage('UserService Docker Build & Push') {
-                            steps {
-                                dir('UserService') {
-                                    script {
-                                        def imageTag = "${env.BUILD_NUMBER}"
-                                        def imageName = "${DOCKER_REGISTRY}/user:${imageTag}"
-                                        def latestImageName = "${DOCKER_REGISTRY}/user:latest"
+                stage('UserService Deploy') {
+                    steps {
+                        script {
+                            echo '🚀 UserService 배포 시작...'
+                            sh """
+                                # UserService 컨테이너 중지
+                                docker-compose -f ${COMPOSE_FILE} stop user || true
 
-                                        echo "🐳 UserService Docker 이미지 빌드: ${imageName}"
+                                # 기존 컨테이너 제거
+                                docker-compose -f ${COMPOSE_FILE} rm -f user || true
 
-                                        sh "docker build -t ${imageName} -t ${latestImageName} ."
+                                # 기존 이미지 제거
+                                docker rmi ${DOCKER_REGISTRY}/user:latest || true
 
-                                        sh '''
-                                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                                        '''
-                                        sh "docker push ${imageName}"
-                                        sh "docker push ${latestImageName}"
+                                # 새 이미지 pull
+                                docker pull ${DOCKER_REGISTRY}/user:latest
 
-                                        echo '✅ UserService Docker Hub 푸시 완료!'
-                                    }
-                                }
-                            }
+                                # UserService 컨테이너 시작
+                                docker-compose -f ${COMPOSE_FILE} up -d user
+
+                                # 컨테이너 상태 확인
+                                sleep 10
+                                docker-compose -f ${COMPOSE_FILE} ps user
+                            """
+                            echo '✅ UserService 배포 완료!'
                         }
+                    }
+                }
+            }
+        }
 
-                        stage('UserService Deploy') {
-                            steps {
-                                script {
-                                    echo '🚀 UserService 배포 시작...'
-                                    sh """
-                                        # UserService 컨테이너 중지
-                                        docker-compose -f ${COMPOSE_FILE} stop user || true
+        stage('Gateway Deploy') {
+            when {
+                expression {
+                    return env.CHANGED_SERVICES?.contains('GatewayService')
+                }
+            }
+            stages {
+                stage('Gateway Build') {
+                    steps {
+                        dir('GatewayService') {
+                            echo '🔨 Gateway Gradle 빌드 시작...'
+                            sh '''
+                                chmod +x gradlew
+                                ./gradlew clean build
+                                echo "빌드된 JAR 파일 확인:"
+                                ls -la build/libs/
+                            '''
+                            echo '✅ Gateway 빌드 완료!'
+                        }
+                    }
+                }
 
-                                        # 기존 컨테이너 제거
-                                        docker-compose -f ${COMPOSE_FILE} rm -f user || true
+                stage('Gateway Docker Build & Push') {
+                    steps {
+                        dir('GatewayService') {
+                            script {
+                                def imageTag = "${env.BUILD_NUMBER}"
+                                def imageName = "${DOCKER_REGISTRY}/gateway:${imageTag}"
+                                def latestImageName = "${DOCKER_REGISTRY}/gateway:latest"
 
-                                        # 기존 이미지 제거
-                                        docker rmi ${DOCKER_REGISTRY}/user:latest || true
+                                echo "🐳 Gateway Docker 이미지 빌드: ${imageName}"
 
-                                        # 새 이미지 pull
-                                        docker pull ${DOCKER_REGISTRY}/user:latest
+                                sh "docker build -t ${imageName} -t ${latestImageName} ."
 
-                                        # UserService 컨테이너 시작
-                                        docker-compose -f ${COMPOSE_FILE} up -d user
+                                sh '''
+                                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                                '''
+                                sh "docker push ${imageName}"
+                                sh "docker push ${latestImageName}"
 
-                                        # 컨테이너 상태 확인
-                                        sleep 10
-                                        docker-compose -f ${COMPOSE_FILE} ps user
-                                    """
-                                    echo '✅ UserService 배포 완료!'
-                                }
+                                echo '✅ Gateway Docker Hub 푸시 완료!'
                             }
                         }
                     }
                 }
 
                 stage('Gateway Deploy') {
-                    when {
-                        expression {
-                            return env.CHANGED_SERVICES?.contains('GatewayService')
-                        }
-                    }
-                    stages {
-                        stage('Gateway Build') {
-                            steps {
-                                dir('GatewayService') {
-                                    echo '🔨 Gateway Gradle 빌드 시작...'
-                                    sh '''
-                                        chmod +x gradlew
-                                        ./gradlew clean build
-                                        echo "빌드된 JAR 파일 확인:"
-                                        ls -la build/libs/
-                                    '''
-                                    echo '✅ Gateway 빌드 완료!'
-                                }
-                            }
-                        }
+                    steps {
+                        script {
+                            echo '🚀 Gateway 배포 시작...'
+                            sh """
+                                # Gateway 컨테이너 중지
+                                docker-compose -f ${COMPOSE_FILE} stop gateway || true
 
-                        stage('Gateway Docker Build & Push') {
-                            steps {
-                                dir('GatewayService') {
-                                    script {
-                                        def imageTag = "${env.BUILD_NUMBER}"
-                                        def imageName = "${DOCKER_REGISTRY}/gateway:${imageTag}"
-                                        def latestImageName = "${DOCKER_REGISTRY}/gateway:latest"
+                                # 기존 컨테이너 제거
+                                docker-compose -f ${COMPOSE_FILE} rm -f gateway || true
 
-                                        echo "🐳 Gateway Docker 이미지 빌드: ${imageName}"
+                                # 기존 이미지 제거
+                                docker rmi ${DOCKER_REGISTRY}/gateway:latest || true
 
-                                        sh "docker build -t ${imageName} -t ${latestImageName} ."
+                                # 새 이미지 pull
+                                docker pull ${DOCKER_REGISTRY}/gateway:latest
 
-                                        sh '''
-                                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                                        '''
-                                        sh "docker push ${imageName}"
-                                        sh "docker push ${latestImageName}"
+                                # Gateway 컨테이너 시작
+                                docker-compose -f ${COMPOSE_FILE} up -d gateway
 
-                                        echo '✅ Gateway Docker Hub 푸시 완료!'
-                                    }
-                                }
-                            }
-                        }
-
-                        stage('Gateway Deploy') {
-                            steps {
-                                script {
-                                    echo '🚀 Gateway 배포 시작...'
-                                    sh """
-                                        # Gateway 컨테이너 중지
-                                        docker-compose -f ${COMPOSE_FILE} stop gateway || true
-
-                                        # 기존 컨테이너 제거
-                                        docker-compose -f ${COMPOSE_FILE} rm -f gateway || true
-
-                                        # 기존 이미지 제거
-                                        docker rmi ${DOCKER_REGISTRY}/gateway:latest || true
-
-                                        # 새 이미지 pull
-                                        docker pull ${DOCKER_REGISTRY}/gateway:latest
-
-                                        # Gateway 컨테이너 시작
-                                        docker-compose -f ${COMPOSE_FILE} up -d gateway
-
-                                        # 컨테이너 상태 확인
-                                        sleep 10
-                                        docker-compose -f ${COMPOSE_FILE} ps gateway
-                                    """
-                                    echo '✅ Gateway 배포 완료!'
-                                }
-                            }
+                                # 컨테이너 상태 확인
+                                sleep 10
+                                docker-compose -f ${COMPOSE_FILE} ps gateway
+                            """
+                            echo '✅ Gateway 배포 완료!'
                         }
                     }
                 }
             }
         }
 
+        // 헬스체크 스테이지 - 배포된 서비스가 있을 때만 실행
         stage('Health Check') {
             when {
                 expression {
@@ -285,50 +270,80 @@ pipeline {
 
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceHealthMap = [
-                        'UserService': 'http://evil55.shop:8081/actuator/health',
+                        'UserService': 'http://evil55.shop/api/user-service/actuator/health',
                         'GatewayService': 'http://evil55.shop:8000/actuator/health'
                     ]
+
+                    def failedServices = []
 
                     services.each { service ->
                         def healthUrl = serviceHealthMap[service]
                         if (healthUrl) {
                             echo "🔍 ${service} 헬스체크 중... (URL: ${healthUrl})"
-                            timeout(time: 2, unit: 'MINUTES') {
-                                waitUntil {
-                                    script {
-                                        try {
-                                            def response = sh(
-                                                script: "curl -s -o /dev/null -w '%{http_code}' ${healthUrl}",
-                                                returnStdout: true
-                                            ).trim()
 
-                                            if (response == '200') {
-                                                echo "✅ ${service} 헬스체크 성공!"
-                                                return true
-                                            } else {
-                                                echo "⏳ ${service} 헬스체크 대기중... (응답코드: ${response})"
-                                                sleep(10)
-                                                return false
-                                            }
-                                        } catch (Exception e) {
-                                            echo "⏳ ${service} 헬스체크 대기중... (연결 실패)"
+                            def maxAttempts = 20
+                            def currentAttempt = 0
+                            def isHealthy = false
+
+                            while (currentAttempt < maxAttempts && !isHealthy) {
+                                currentAttempt++
+                                echo "📋 ${service} 헬스체크 시도 ${currentAttempt}/${maxAttempts}"
+
+                                try {
+                                    def response = sh(
+                                        script: "curl -s -L -o /dev/null -w '%{http_code}' ${healthUrl}",
+                                        returnStdout: true
+                                    ).trim()
+
+                                    if (response == '200') {
+                                        echo "✅ ${service} 헬스체크 성공! (${currentAttempt}번째 시도)"
+                                        isHealthy = true
+                                    } else {
+                                        echo "⏳ ${service} 헬스체크 실패 (응답코드: ${response})"
+                                        if (currentAttempt < maxAttempts) {
+                                            echo "⏳ 10초 후 재시도..."
                                             sleep(10)
-                                            return false
                                         }
+                                    }
+                                } catch (Exception e) {
+                                    echo "⏳ ${service} 헬스체크 실패 (연결 실패: ${e.message})"
+                                    if (currentAttempt < maxAttempts) {
+                                        echo "⏳ 10초 후 재시도..."
+                                        sleep(10)
                                     }
                                 }
                             }
+
+                            if (!isHealthy) {
+                                failedServices.add(service)
+                                echo "❌ ${service} 헬스체크 최종 실패 (${maxAttempts}번 시도 후 포기)"
+
+                                // Docker 이미지 정리
+                                cleanupFailedService(service)
+                            }
                         }
+                    }
+
+                    // 실패한 서비스가 있으면 빌드 전체 실패
+                    if (!failedServices.isEmpty()) {
+                        def failedServicesString = failedServices.join(', ')
+                        echo "💥 헬스체크 실패한 서비스: ${failedServicesString}"
+                        error("헬스체크 실패로 인한 배포 중단: ${failedServicesString}")
                     }
                 }
             }
         }
 
         stage('Service Status Check') {
+            when {
+                expression {
+                    return env.CHANGED_SERVICES != null && env.CHANGED_SERVICES.trim() != ''
+                }
+            }
             steps {
                 script {
                     echo '📊 서비스 상태 확인...'
-                    echo "확인할 서비스: ${env.CHANGED_SERVICES ?: '없음'}"
+                    echo "확인할 서비스: ${env.CHANGED_SERVICES}"
 
                     sh """
                         echo "=== 전체 Docker Compose 서비스 상태 ==="
@@ -336,28 +351,24 @@ pipeline {
                         echo ""
                     """
 
-                    if (env.CHANGED_SERVICES != null && env.CHANGED_SERVICES.trim() != '') {
-                        def services = env.CHANGED_SERVICES.split(',')
-                        def serviceMap = [
-                            'UserService': 'user',
-                            'GatewayService': 'gateway'
-                        ]
+                    def services = env.CHANGED_SERVICES.split(',')
+                    def serviceMap = [
+                        'UserService': 'user',
+                        'GatewayService': 'gateway'
+                    ]
 
-                        services.each { service ->
-                            def dockerService = serviceMap[service]
-                            if (dockerService) {
-                                sh """
-                                    echo "=== ${service} (${dockerService}) 상세 정보 ==="
-                                    docker-compose -f ${COMPOSE_FILE} ps ${dockerService}
-                                    echo ""
-                                    echo "--- ${service} 최근 로그 (20줄) ---"
-                                    docker-compose -f ${COMPOSE_FILE} logs --tail=20 ${dockerService} || true
-                                    echo ""
-                                """
-                            }
+                    services.each { service ->
+                        def dockerService = serviceMap[service]
+                        if (dockerService) {
+                            sh """
+                                echo "=== ${service} (${dockerService}) 상세 정보 ==="
+                                docker-compose -f ${COMPOSE_FILE} ps ${dockerService}
+                                echo ""
+                                echo "--- ${service} 최근 로그 (20줄) ---"
+                                docker-compose -f ${COMPOSE_FILE} logs --tail=20 ${dockerService} || true
+                                echo ""
+                            """
                         }
-                    } else {
-                        echo "⚠️ 배포된 서비스가 없으므로 상세 정보를 표시하지 않습니다."
                     }
                 }
             }
@@ -380,14 +391,17 @@ pipeline {
     post {
         success {
             script {
-                echo '🎉 서비스 배포 파이프라인 성공!'
-                def deployedServices = env.CHANGED_SERVICES ?: 'none'
-                echo "✅ 배포된 서비스: ${deployedServices}"
-                echo "🌐 서비스 접속 URL:"
-
-                if (deployedServices == 'none' || deployedServices.trim() == '') {
-                    echo "⚠️ 배포된 서비스가 없습니다."
+                def deployedServices = env.CHANGED_SERVICES ?: ''
+                if (deployedServices.trim() == '') {
+                    echo '🎉 파이프라인 완료! (배포된 서비스 없음)'
+                    echo '✨ 변경사항이 없어 배포를 건너뛰었습니다.'
+                    echo "📋 빌드 번호: ${env.BUILD_NUMBER}"
+                    echo "📋 완료 시간: ${new Date()}"
                 } else {
+                    echo '🎉 서비스 배포 파이프라인 성공!'
+                    echo "✅ 배포된 서비스: ${deployedServices}"
+                    echo "🌐 서비스 접속 URL:"
+
                     def services = deployedServices.split(',')
                     services.each { service ->
                         if (service == 'UserService') {
@@ -398,11 +412,11 @@ pipeline {
                             echo "  - Gateway Health: http://evil55.shop:8000/actuator/health"
                         }
                     }
-                }
 
-                echo "📋 배포 정보:"
-                echo "  - 빌드 번호: ${env.BUILD_NUMBER}"
-                echo "  - 배포 시간: ${new Date()}"
+                    echo "📋 배포 정보:"
+                    echo "  - 빌드 번호: ${env.BUILD_NUMBER}"
+                    echo "  - 배포 시간: ${new Date()}"
+                }
             }
         }
         failure {
@@ -428,5 +442,37 @@ pipeline {
             '''
             echo '🧹 파이프라인 정리 작업 완료'
         }
+    }
+}
+
+// 실패한 서비스의 Docker 이미지 정리 함수
+def cleanupFailedService(String serviceName) {
+    try {
+        echo "🗑️ ${serviceName} 실패한 컨테이너 및 이미지 정리 중..."
+
+        def serviceMap = [
+            'UserService': 'user',
+            'GatewayService': 'gateway'
+        ]
+
+        def dockerService = serviceMap[serviceName]
+        if (dockerService) {
+            sh """
+                # 실패한 컨테이너 중지 및 제거
+                docker-compose -f ${COMPOSE_FILE} stop ${dockerService} || true
+                docker-compose -f ${COMPOSE_FILE} rm -f ${dockerService} || true
+
+                # 실패한 이미지 제거 (현재 배포 시도한 이미지)
+                docker rmi ${DOCKER_REGISTRY}/${dockerService}:latest || true
+                docker rmi ${DOCKER_REGISTRY}/${dockerService}:${env.BUILD_NUMBER} || true
+
+                # dangling 이미지 정리
+                docker image prune -f
+            """
+        }
+
+        echo "✅ ${serviceName} 정리 완료"
+    } catch (Exception e) {
+        echo "❌ ${serviceName} 정리 실패: ${e.message}"
     }
 }
