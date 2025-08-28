@@ -37,7 +37,7 @@ public interface JpaDeckRepository extends JpaRepository<DeckEntity, Long> {
     List<DeckEntity> findAllBy();
 
 
-    @EntityGraph(attributePaths = {"cards"})
+//    @EntityGraph(attributePaths = {"cards"})
     Optional<DeckEntity> findById(Long id);
 //    @EntityGraph(attributePaths = {"cards"})
 //    Page<DeckEntity> findAllBy(Pageable pageable);
