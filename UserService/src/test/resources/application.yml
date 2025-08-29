@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: learn-user  # Config Server에서 찾을 기본 이름
+  config:
+    import: optional:configserver:http://evil55.shop:8888
+  profiles:
+    active: prod
