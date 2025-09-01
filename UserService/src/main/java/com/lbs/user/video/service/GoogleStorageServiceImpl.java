@@ -1,12 +1,10 @@
-package com.lbs.user.video.controller;
+package com.lbs.user.video.service;
 
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
-import com.lbs.user.video.dto.request.VideoUploadDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.constraints.pl.REGON;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,7 +20,7 @@ import java.io.IOException;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GoogleVideoServiceImpl implements VideoService {
+public class GoogleStorageServiceImpl implements StorageService {
     private final Storage storage;
 
     @Override
@@ -47,11 +45,5 @@ public class GoogleVideoServiceImpl implements VideoService {
            throw new RuntimeException("파일 업로드 실패", e);
        }
     }
-
-    @Override
-    public void createVideo(VideoUploadDto videoUploadDto, String fileUrl) {
-        // db작업..
-    }
-
 
 }
