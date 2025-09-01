@@ -2,9 +2,9 @@ package com.lbs.user.video.controller;
 
 import com.lbs.user.common.response.ApiResponse;
 import com.lbs.user.video.dto.request.VideoUploadDto;
+import com.lbs.user.video.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/videos")
 @RequiredArgsConstructor
 public class VideoController {
-    private final VideoService videoService ;
+    private final StorageService storageService;
 
     @PostMapping("")
     public ResponseEntity<ApiResponse<String>> uploadVideo (@ModelAttribute VideoUploadDto videoUploadDto) {
         log.info(videoUploadDto.toString());
 
-        String url = videoService.uploadVideo(videoUploadDto.videoFile());
+        String url = storageService.uploadVideo(videoUploadDto.videoFile());
         log.info(url.toString());
 
 
