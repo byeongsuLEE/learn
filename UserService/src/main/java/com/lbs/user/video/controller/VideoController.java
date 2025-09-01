@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/videos")
 @RequiredArgsConstructor
 public class VideoController {
-    private final VideoService videoService ;
+//    private final VideoService videoService ;
 
     @PostMapping("")
     public ResponseEntity<ApiResponse<String>> uploadVideo (@ModelAttribute VideoUploadDto videoUploadDto) {
