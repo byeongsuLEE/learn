@@ -1,7 +1,8 @@
 package com.lbs.user.video.service;
 
+import com.lbs.user.video.domain.Video;
 import com.lbs.user.video.dto.request.VideoUploadDto;
-import com.lbs.user.video.repository.VideoRepository;
+import com.lbs.user.video.infrastructure.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,14 @@ public class VideoServiceImpl implements VideoService {
 
     private final VideoRepository videoRepository;
     @Override
-    public void saveVideo(VideoUploadDto videoUploadDto, String storageURL) {
+    public Video saveVideo(VideoUploadDto videoUploadDto, String storageURL) {
+        // 도메인 객체 만들어서 넘겨주기
+        Video video = Video.createVideo(videoUploadDto, storageURL);
+        return videoRepository.saveVideo(video);
+    }
 
+    @Override
+    public Video getVideo(Long id) {
+        return videoRepository.getVideo(id);
     }
 }
