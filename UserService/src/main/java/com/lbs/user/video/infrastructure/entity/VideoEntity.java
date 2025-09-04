@@ -1,6 +1,8 @@
 package com.lbs.user.video.infrastructure.entity;
 
+import com.lbs.user.card.domain.AuditInfo;
 import com.lbs.user.user.infrastructure.entity.BaseEntity;
+import com.lbs.user.video.domain.Video;
 import jakarta.persistence.*;
 import lombok.*;
 import org.checkerframework.checker.units.qual.A;
@@ -38,4 +40,22 @@ public class VideoEntity extends BaseEntity {
 
     }
 
+    @Override
+    public String toString() {
+        return "VideoEntity{" + "id=" + id + ", title=" + title + ", description=" + description + ", userId=" + userId + ", tag=" + tag + ", url=" + url + "}";
+    }
+
+    public Video toDomain() {
+        AuditInfo auditInfo = new AuditInfo(getCreatedBy(),getCreatedDate(),getLastModifiedBy(),getLastModifiedDate());
+
+        return Video.createVideo(
+                this.id,
+                this.title,
+                this.description,
+                this.tag,
+                this.url,
+                this.userId,
+                auditInfo
+        );
+    }
 }
