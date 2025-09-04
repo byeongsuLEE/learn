@@ -26,6 +26,7 @@ public class CardEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
+    @Column(length = 1000)
     private String description;
 
     // 나는 deck에서 해당 id가 없어지면 관련된 card들 모 두 지우고 싶음 =  cascade.remove만하면됨

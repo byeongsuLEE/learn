@@ -2,13 +2,23 @@ package com.lbs.user.video.infrastructure.repository;
 
 import com.lbs.user.card.domain.AuditInfo;
 import com.lbs.user.video.domain.Video;
+import com.lbs.user.video.dto.request.VideoSearchDto;
+import com.lbs.user.video.dto.response.VideoResponseDto;
 import com.lbs.user.video.infrastructure.entity.VideoEntity;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.lbs.user.video.infrastructure.entity.QVideoEntity.videoEntity;
 
 /**
  * 작성자  : lbs
@@ -23,6 +33,8 @@ import java.util.Optional;
 public class JPAVideoRepositoryImpl implements VideoRepository {
 
     private final VideoJPARepository videoJPARepository;
+    private final JPAQueryFactory queryFactory;
+
 
     @Override
     public Video saveVideo(Video video
@@ -62,8 +74,50 @@ public class JPAVideoRepositoryImpl implements VideoRepository {
     }
 
     @Override
-    public List<Video> getAllVideos() {
-        return List.of();
+    public Slice<VideoResponseDto> getAllVideos(VideoSearchDto videoSearchDto, Pageable pageable) {
+
+
+        BooleanExpression searchCondition = createSearchCondition(videoSearchDto);
+
+        List<VideoEntity> entityList = queryFactory.selectFrom(videoEntity)
+                .where(searchCondition)
+                .orderBy(videoEntity.createdDate.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize() + 1)
+                .fetch();
+
+        // 1. hasNext 계산
+        boolean hasNext = entityList.size() > pageable.getPageSize();
+
+        // 2. hasNext가 true이면 마지막 항목 제거
+        if (hasNext) {
+            entityList.remove(pageable.getPageSize());
+        }
+
+        List<Video> videoList = entityList.stream()
+                .map(VideoEntity::toDomain) // toDomain 메서드 추가
+                .collect(Collectors.toList());
+
+
+        List<VideoResponseDto> dtoList = videoList.stream()
+                .map(VideoResponseDto::fromDomain)
+                .collect(Collectors.toList());
+
+
+        return new SliceImpl<>(dtoList, pageable, hasNext);
+    }
+
+    private BooleanExpression createSearchCondition(VideoSearchDto videoSearchDto) {
+        String keyword = videoSearchDto.keyword();
+
+        if (keyword == null || keyword.isEmpty()) {
+            return null;
+        }
+
+        // OR 조건을 직접 연결하여 하나의 BooleanExpression으로 반환
+        return videoEntity.title.containsIgnoreCase(keyword)
+                .or(videoEntity.description.containsIgnoreCase(keyword))
+                .or(videoEntity.tag.containsIgnoreCase(keyword));
     }
 
     private static AuditInfo getAuditInfo(VideoEntity savedEntity) {

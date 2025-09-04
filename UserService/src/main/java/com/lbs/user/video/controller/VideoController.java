@@ -2,12 +2,15 @@ package com.lbs.user.video.controller;
 
 import com.lbs.user.common.response.ApiResponse;
 import com.lbs.user.video.domain.Video;
+import com.lbs.user.video.dto.request.VideoSearchDto;
 import com.lbs.user.video.dto.request.VideoUploadDto;
 import com.lbs.user.video.dto.response.VideoResponseDto;
 import com.lbs.user.video.service.StorageService;
 import com.lbs.user.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,11 +52,8 @@ public class VideoController {
                 .body(ApiResponse.success(HttpStatus.CREATED,responseDto));
     }
 
-    @GetMapping("")
-    public ResponseEntity<ApiResponse<VideoResponseDto>> getVideo (Long id) {
-
-
-
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<VideoResponseDto>> getVideo (@PathVariable Long id) {
         Video video = videoService.getVideo(id);
         VideoResponseDto responseDto = new VideoResponseDto(
                 video.getId(),
@@ -67,6 +67,23 @@ public class VideoController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED,responseDto));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Slice<VideoResponseDto>>> getVideos (VideoSearchDto videoSearchDto, Pageable pageable) {
+        Slice<VideoResponseDto> video = videoService.getVideoList(videoSearchDto, pageable);
+//        VideoResponseDto responseDto = new VideoResponseDto(
+//                video.getId(),
+//                video.getTitle(),
+//                video.getDescription(),
+//                video.getTag(),
+//                video.getUrl(),
+//                video.getUserId(),
+//                video.getAuditInfo()
+//        );
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(HttpStatus.CREATED,video));
     }
 
 }
