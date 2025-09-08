@@ -25,7 +25,7 @@ class VideoJPARepositoryImplTest {
                 .title("title")
                 .description("description")
                 .tag("만화")
-                .url("https://storage.googleapis.com/evil55/videos/%ED%8C%A8%ED%8A%B8%EC%99%80%EB%A7%A4%ED%8A%B8%203%ED%99%94-%EA%B3%BC%EC%9E%90%EB%A7%8C%EB%93%A4%EA%B8%B0%23Pat%20and%20Mat%20EP-3.mp4")
+                .videoURL("https://storage.googleapis.com/evil55/videos/%ED%8C%A8%ED%8A%B8%EC%99%80%EB%A7%A4%ED%8A%B8%203%ED%99%94-%EA%B3%BC%EC%9E%90%EB%A7%8C%EB%93%A4%EA%B8%B0%23Pat%20and%20Mat%20EP-3.mp4")
                 .userId(1L)
                 .build();
 

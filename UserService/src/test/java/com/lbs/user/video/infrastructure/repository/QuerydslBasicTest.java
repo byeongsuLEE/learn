@@ -47,7 +47,7 @@ public class QuerydslBasicTest {
     @Test
     public void startQuerydsl() {
         VideoEntity videoEntity = VideoEntity.builder().title("test")
-                .url("test")
+                .videoURL("test")
                 .description("test")
                 .tag("영상")
                 .userId(1L)
