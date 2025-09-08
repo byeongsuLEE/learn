@@ -23,8 +23,6 @@ public class ConfigChecker {
     @PostConstruct
     public void logConfig() {
         System.out.println("=== CONFIG VALUES ===");
-        System.out.println("Username: [" + username + "]");
-        System.out.println("Password: [" + password + "]");
         System.out.println("Username starts with {cipher}: " + username.startsWith("{cipher}"));
         System.out.println("====================");
     }
