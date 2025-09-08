@@ -7,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.Mapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 작성자  : lbs
@@ -20,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @Slf4j
-@RestController("/videos")
+@RestController
+@RequestMapping("/videos")
 @RequiredArgsConstructor
 public class VideoController {
 //    private final VideoService videoService ;
@@ -29,7 +27,10 @@ public class VideoController {
     public ResponseEntity<ApiResponse<String>> uploadVideo (@ModelAttribute VideoUploadDto videoUploadDto) {
         log.info(videoUploadDto.toString());
 
-//        videoService.uploadVideo(videoUploadDto.videoFile());
+        String url = videoService.uploadVideo(videoUploadDto.videoFile());
+        log.info(url.toString());
+
+
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED,"동영상 업로드 완료"));
