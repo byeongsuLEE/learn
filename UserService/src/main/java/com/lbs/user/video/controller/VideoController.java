@@ -34,19 +34,13 @@ public class VideoController {
     public ResponseEntity<ApiResponse<VideoResponseDto>> uploadVideo (@ModelAttribute VideoUploadDto videoUploadDto) {
         log.info(videoUploadDto.toString());
 
-        String url = storageService.uploadVideo(videoUploadDto.videoFile());
-        log.info(url.toString());
+        String videoURL = storageService.uploadVideo(videoUploadDto.videoFile());
+        String thumbnailImageURL = storageService.uploadVideo(videoUploadDto.thumbnailImage());
+        log.info(videoURL.toString());
 
-        Video video = videoService.saveVideo(videoUploadDto, url);
-        VideoResponseDto responseDto = new VideoResponseDto(
-                video.getId(),
-                video.getTitle(),
-                video.getDescription(),
-                video.getTag(),
-                video.getUrl(),
-                video.getUserId(),
-                video.getAuditInfo()
-        );
+
+        Video video = videoService.saveVideo(videoUploadDto, videoURL,thumbnailImageURL);
+        VideoResponseDto responseDto = getVideoResponseDtoToDomain(video);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED,responseDto));
@@ -55,15 +49,7 @@ public class VideoController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<VideoResponseDto>> getVideo (@PathVariable Long id) {
         Video video = videoService.getVideo(id);
-        VideoResponseDto responseDto = new VideoResponseDto(
-                video.getId(),
-                video.getTitle(),
-                video.getDescription(),
-                video.getTag(),
-                video.getUrl(),
-                video.getUserId(),
-                video.getAuditInfo()
-        );
+        VideoResponseDto responseDto = getVideoResponseDtoToDomain(video);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED,responseDto));
@@ -84,6 +70,20 @@ public class VideoController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED,video));
+    }
+
+    private static VideoResponseDto getVideoResponseDtoToDomain(Video video) {
+        VideoResponseDto responseDto = new VideoResponseDto(
+                video.getId(),
+                video.getTitle(),
+                video.getDescription(),
+                video.getTag(),
+                video.getVideoURL(),
+                video.getThumbnailURL(),
+                video.getUserId(),
+                video.getAuditInfo()
+        );
+        return responseDto;
     }
 
 }

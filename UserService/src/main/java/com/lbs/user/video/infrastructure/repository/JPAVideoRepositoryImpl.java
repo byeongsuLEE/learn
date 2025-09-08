@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.lbs.user.video.infrastructure.entity.QVideoEntity.videoEntity;
@@ -45,7 +44,8 @@ public class JPAVideoRepositoryImpl implements VideoRepository {
                 .description(video.getDescription())
                 .tag(video.getTag())
                 .userId(video.getUserId())
-                .url(video.getUrl())
+                .videoURL(video.getVideoURL())
+                .thumbnailURL(video.getThumbnailURL())
                 .build();
 
         VideoEntity savedEntity = videoJPARepository.save(videoEntity);
@@ -61,7 +61,7 @@ public class JPAVideoRepositoryImpl implements VideoRepository {
 
     @Override
     public Video getVideo(Long videoId) {
-        VideoEntity videoEntity = videoJPARepository.findById(videoId).orElseGet(()-> null);
+        VideoEntity videoEntity = videoJPARepository.findById(videoId).orElseGet(() -> null);
         return getVideo(videoEntity);
 
     }
@@ -70,7 +70,7 @@ public class JPAVideoRepositoryImpl implements VideoRepository {
         AuditInfo auditInfo = getAuditInfo(videoEntity);
         return Video.createVideo(videoEntity.getId(), videoEntity.getTitle(),
                 videoEntity.getDescription(), videoEntity.getTag(),
-                videoEntity.getUrl(), videoEntity.getUserId(), auditInfo);
+                videoEntity.getVideoURL(), videoEntity.getThumbnailURL(), videoEntity.getUserId(), auditInfo);
     }
 
     @Override

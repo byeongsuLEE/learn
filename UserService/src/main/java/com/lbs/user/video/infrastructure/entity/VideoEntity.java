@@ -5,7 +5,6 @@ import com.lbs.user.user.infrastructure.entity.BaseEntity;
 import com.lbs.user.video.domain.Video;
 import jakarta.persistence.*;
 import lombok.*;
-import org.checkerframework.checker.units.qual.A;
 
 /**
  * 작성자  : lbs
@@ -26,36 +25,38 @@ public class VideoEntity extends BaseEntity {
     private String description;
     private Long userId;
     private String tag;
-    private String url;
+    private String videoURL;
+    private String thumbnailURL;
 
 
     @Builder
-    public VideoEntity(Long id, String title, String description, Long userId, String tag, String url) {
+    public VideoEntity(Long id, String title, String description, Long userId, String tag, String videoURL, String thumbnailURL) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.userId = userId;
         this.tag = tag;
-        this.url = url;
+        this.videoURL = videoURL;
+        this.thumbnailURL = thumbnailURL;
 
-    }
-
-    @Override
-    public String toString() {
-        return "VideoEntity{" + "id=" + id + ", title=" + title + ", description=" + description + ", userId=" + userId + ", tag=" + tag + ", url=" + url + "}";
     }
 
     public Video toDomain() {
         AuditInfo auditInfo = new AuditInfo(getCreatedBy(),getCreatedDate(),getLastModifiedBy(),getLastModifiedDate());
-
         return Video.createVideo(
                 this.id,
                 this.title,
                 this.description,
                 this.tag,
-                this.url,
+                this.videoURL,
+                this.thumbnailURL,
                 this.userId,
                 auditInfo
         );
+    }
+
+    @Override
+    public String toString() {
+        return "VideoEntity{" + "id=" + id + ", title=" + title + ", description=" + description + ", userId=" + userId + ", tag=" + tag + ", videoURL=" + videoURL + "}";
     }
 }

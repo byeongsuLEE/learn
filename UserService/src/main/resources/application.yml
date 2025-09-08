@@ -41,7 +41,7 @@ management:
 #  application:
 #    name: user-service
 #  datasource:
-#    url: jdbc:mysql://evil55.shop:3306/lbs
+#    videoURL: jdbc:mysql://evil55.shop:3306/lbs
 #    username: evil55
 #    password: a980523
 #    driver-class-name: com.mysql.cj.jdbc.Driver
@@ -60,7 +60,7 @@ management:
 #  client:
 #    register-with-eureka: true
 #    fetch-registry: true
-#    service-url:
+#    service-videoURL:
 #      defaultZone: http://127.0.0.1:8761/eureka
 #
 #
