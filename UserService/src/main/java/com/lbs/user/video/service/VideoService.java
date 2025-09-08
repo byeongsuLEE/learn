@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 public interface VideoService {
-    Video saveVideo(VideoUploadDto videoUploadDto, String storageURL);
+    Video saveVideo(VideoUploadDto videoUploadDto, String storageURL, String thumbnailImageURL);
     Video getVideo(Long id);
 
     Slice<VideoResponseDto> getVideoList(VideoSearchDto videoSearchDto, Pageable pageable);

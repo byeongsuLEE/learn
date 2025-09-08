@@ -8,7 +8,8 @@ public record VideoResponseDto(
         String title,
         String description,
         String tag,
-        String url,
+        String videoURL,
+        String thumbURL,
         Long userId,
         AuditInfo auditInfo
 ) {
@@ -18,7 +19,8 @@ public record VideoResponseDto(
                 video.getTitle(),
                 video.getDescription(),
                 video.getTag(),
-                video.getUrl(),
+                video.getVideoURL(),
+                video.getThumbnailURL(),
                 video.getUserId(),
                 video.getAuditInfo());
     };

@@ -53,7 +53,7 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
                         .build().toUriString();
 
         //jwt를 userinfo로 만듬
-        log.info("target url : {} , user id : {}, user name : {} , user email : {} ",redirectUrl, user.getId().toString(),user.getName(),user.getEmail());
+        log.info("target videoURL : {} , user id : {}, user name : {} , user email : {} ",redirectUrl, user.getId().toString(),user.getName(),user.getEmail());
 
 //        // 방법 1: 헤더 직접 설정
 //        response.setStatus(HttpServletResponse.SC_FOUND); // 302 상태 코드
