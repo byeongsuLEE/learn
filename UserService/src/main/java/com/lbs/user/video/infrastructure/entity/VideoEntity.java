@@ -9,7 +9,7 @@ import lombok.*;
 /**
  * 작성자  : lbs
  * 날짜    : 2025-09-02
- * video 엔티티 3
+ * video 엔티티 4
  **/
 
 
