@@ -113,12 +113,16 @@ pipeline {
                     steps {
                         dir('UserService') {
                             echo '🔨 UserService Gradle 빌드 시작...'
-                            sh '''
-                                chmod +x gradlew
-                                ./gradlew clean build -Dspring.profiles.active=prod
-                                echo "빌드된 JAR 파일 확인:"
-                                ls -la build/libs/
-                            '''
+                            script {
+                                withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE')]) {
+                                    sh '''
+                                        chmod +x gradlew
+                                        ./gradlew clean build -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=${GCP_KEY_FILE}
+                                        echo "빌드된 JAR 파일 확인:"
+                                        ls -la build/libs/
+                                    '''
+                                }
+                            }
                             echo '✅ UserService 빌드 완료!'
                         }
                     }
