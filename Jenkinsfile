@@ -179,6 +179,14 @@ pipeline {
                         script {
                             echo '🚀 UserService 배포 시작...'
                             sh """
+                             # 임시 디렉토리 생성 및 권한 설정
+                                mkdir -p /tmp/jenkins-credentials
+                                chmod 700 /tmp/jenkins-credentials
+
+                                # Jenkins가 제공한 키 파일을 마운트할 디렉토리로 복사
+                                cp ${GCP_KEY_FILE_PATH} /tmp/jenkins-credentials/gcp-key.json
+
+
                                 # UserService 컨테이너 중지
                                 docker-compose -f ${COMPOSE_FILE} stop user || true
 
