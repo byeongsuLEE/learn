@@ -143,7 +143,7 @@ pipeline {
                                           cp ${GCP_KEY_FILE} /tmp/jenkins-credentials/gcp-key.json
 
                                           # 빌드 및 테스트를 실행하며, -D 옵션으로 안정적인 경로를 전달합니다.
-                                          ./gradlew clean build -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=/tmp/jenkins-credentials/gcp-key.json
+                                         ./gradlew clean build -Dspring.profiles.active=prod -Dspring.cloud.gcp.credentials.location=/tmp/jenkins-credentials/gcp-key.json
 
                                           echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
