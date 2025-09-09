@@ -21,6 +21,25 @@ pipeline {
             }
         }
 
+        //  GCP 키 파일 준비
+        stage('Prepare GCP Credentials') {
+            steps {
+                echo '🔑 GCP 자격 증명 파일 준비 중...'
+                withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE_PATH')]) {
+                    sh """
+                        # GCP 키를 복사할 디렉토리 생성
+                        mkdir -p UserService/src/main/resources
+
+                        # Jenkins가 임시로 제공한 키 파일을 빌드 디렉토리로 복사
+                        cp ${GCP_KEY_FILE_PATH} UserService/src/main/resources/gcp-key.json
+
+                        echo "✅ GCP 자격 증명 파일 준비 완료!"
+                    """
+                }
+            }
+        }
+
+
         stage('Detect Changed Services') {
             steps {
                 script {
@@ -119,12 +138,11 @@ pipeline {
                                     // 이 부분은 그대로 유지
                                     sh '''
                                         chmod +x gradlew
-                                        ./gradlew clean build -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=${GCP_KEY_FILE}
+                                        ./gradlew clean build -Dspring.profiles.active=prod
                                         echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
                                     '''
-                                    // 변경된 부분: GCP_KEY_FILE 경로를 다음 단계에서 사용할 수 있도록 환경 변수에 저장
-                                    env.GCP_KEY_FILE_PATH = "${GCP_KEY_FILE}"
+
                                 }
                             }
                             echo '✅ UserService 빌드 완료!'
@@ -173,11 +191,11 @@ pipeline {
                                 # 새 이미지 pull
                                 docker pull ${DOCKER_REGISTRY}/user:latest
 
-                                # 변경된 부분: 환경 변수를 사용하여 컨테이너 시작
-                                GOOGLE_CREDENTIALS_LOCATION=${env.GCP_KEY_FILE_PATH} docker-compose -f ${COMPOSE_FILE} up -d user
+                                docker-compose -f ${COMPOSE_FILE} up -d user
 
                                 # 컨테이너 상태 확인
                                 sleep 10
+
                                 docker-compose -f ${COMPOSE_FILE} ps user
                             """
                             echo '✅ UserService 배포 완료!'
