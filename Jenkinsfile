@@ -17,16 +17,6 @@ pipeline {
                         credentialsId: 'github-access-Token'
                 }
                 sh 'ls -la'
-
-                 script {
-                    // withCredentials 블록을 이 단계에만 유지
-                    withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE')]) {
-                        // 이 부분은 그대로 유지
-                          sh "cp -f ${GCP_KEY_FILE} UserService/src/main/resources/gcp-key.json"
-                    }
-                }
-
-
                 echo '✅ GitHub 연결 성공!'
             }
         }
@@ -151,7 +141,6 @@ pipeline {
                                           # GCP 키 파일을 안정적인 임시 위치로 복사합니다.
                                           mkdir -p /tmp/jenkins-credentials
                                           cp ${GCP_KEY_FILE} /tmp/jenkins-credentials/gcp-key.json
-
 
                                           # 빌드 및 테스트를 실행하며, -D 옵션으로 안정적인 경로를 전달합니다.
                                           ./gradlew clean build -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=/tmp/jenkins-credentials/gcp-key.json
