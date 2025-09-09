@@ -21,23 +21,23 @@ pipeline {
             }
         }
 
-        //  GCP 키 파일 준비
-        stage('Prepare GCP Credentials') {
-            steps {
-                echo '🔑 GCP 자격 증명 파일 준비 중...'
-                withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE_PATH')]) {
-                    sh """
-                        # GCP 키를 복사할 디렉토리 생성
-                        mkdir -p UserService/src/main/resources
-
-                        # Jenkins가 임시로 제공한 키 파일을 빌드 디렉토리로 복사
-                        cp ${GCP_KEY_FILE_PATH} UserService/src/main/resources/gcp-key.json
-
-                        echo "✅ GCP 자격 증명 파일 준비 완료!"
-                    """
-                }
-            }
-        }
+//         //  GCP 키 파일 준비
+//         stage('Prepare GCP Credentials') {
+//             steps {
+//                 echo '🔑 GCP 자격 증명 파일 준비 중...'
+//                 withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE_PATH')]) {
+//                     sh """
+//                         # GCP 키를 복사할 디렉토리 생성
+//                         mkdir -p UserService/src/main/resources
+//
+//                         # Jenkins가 임시로 제공한 키 파일을 빌드 디렉토리로 복사
+//                         cp ${GCP_KEY_FILE_PATH} UserService/src/main/resources/gcp-key.json
+//
+//                         echo "✅ GCP 자격 증명 파일 준비 완료!"
+//                     """
+//                 }
+//             }
+//         }
 
 
         stage('Detect Changed Services') {
@@ -137,16 +137,15 @@ pipeline {
                                 withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE')]) {
                                     // 이 부분은 그대로 유지
                                     sh '''
-                                        chmod +x gradlew
+                                          chmod +x gradlew
+                                          # GCP 키 파일을 안정적인 임시 위치로 복사합니다.
+                                          mkdir -p /tmp/jenkins-credentials
+                                          cp ${GCP_KEY_FILE} /tmp/jenkins-credentials/gcp-key.json
 
-                                        # 빌드와 테스트에 사용할 임시 디렉토리 생성
-                                        mkdir -p /tmp/jenkins-credentials
+                                          # 빌드 및 테스트를 실행하며, -D 옵션으로 안정적인 경로를 전달합니다.
+                                          ./gradlew clean build -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=/tmp/jenkins-credentials/gcp-key.json
 
-                                        # 실제 빌드 및 테스트 실행
-                                        # -D 옵션으로 GCP 키 파일 경로를 시스템 속성으로 전달
-                                        # Spring은 이 속성을 GOOGLE_CREDENTIALS_LOCATION 환경 변수에 매핑
-                                        ./gradlew clean build -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=/tmp/jenkins-credentials/gcp-key.json
-                                        echo "빌드된 JAR 파일 확인:"
+                                          echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
                                     '''
 
