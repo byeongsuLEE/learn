@@ -22,7 +22,7 @@ pipeline {
                     // withCredentials 블록을 이 단계에만 유지
                     withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE')]) {
                         // 이 부분은 그대로 유지
-                          sh "cp -f \$FILE UserService/src/main/resources/${GCP_KEY_FILE}"
+                          sh "cp -f ${GCP_KEY_FILE} UserService/src/main/resources/gcp-key.json"
                     }
                 }
 
