@@ -14,7 +14,7 @@ import java.io.IOException;
 @Profile("!local") // local 프로파일이 아닐 때 이 빈을 사용
 public class GoogleCloudStorageProdConfig {
 
-    @Value("${spring.cloud.gcp.credentials.location}")
+    @Value("${google.cloud.storage.credentials.location}")
     private String credentialsLocation;
 
     @Bean
