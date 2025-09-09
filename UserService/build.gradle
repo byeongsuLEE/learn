@@ -82,7 +82,6 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
 
-
     // mapstruct  lombok 아래에 선언해야함
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
@@ -114,9 +113,6 @@ dependencyManagement {
 }
 
 
-
-
-
 asciidoctor {
 
     configurations 'asciidoctorExt'
@@ -131,7 +127,7 @@ asciidoctor {
 
 bootJar {
     dependsOn asciidoctor
-    from ("${asciidoctor.outputDir}") {
+    from("${asciidoctor.outputDir}") {
         into 'static/docs'
     }
 }
@@ -144,7 +140,6 @@ task copyDocument(type: Copy) {
 }
 
 
-
 build {
     dependsOn copyDocument
 }
@@ -152,5 +147,11 @@ build {
 tasks.named('test') {
     useJUnitPlatform()
     outputs.dir snippetsDir
+
+
+    // 배포 시 google storage key.json을  전달 하기 위한 코드
+    systemProperties System.properties.findAll {
+        it.key.startsWith('google.cloud.storage') || it.key.startsWith('spring.profiles')
+    }
 
 }
