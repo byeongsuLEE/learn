@@ -138,7 +138,14 @@ pipeline {
                                     // 이 부분은 그대로 유지
                                     sh '''
                                         chmod +x gradlew
-                                        ./gradlew clean build -Dspring.profiles.active=prod
+
+                                        # 빌드와 테스트에 사용할 임시 디렉토리 생성
+                                        mkdir -p /tmp/jenkins-credentials
+
+                                        # 실제 빌드 및 테스트 실행
+                                        # -D 옵션으로 GCP 키 파일 경로를 시스템 속성으로 전달
+                                        # Spring은 이 속성을 GOOGLE_CREDENTIALS_LOCATION 환경 변수에 매핑
+                                        ./gradlew clean build -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=/tmp/jenkins-credentials/gcp-key.json
                                         echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
                                     '''
