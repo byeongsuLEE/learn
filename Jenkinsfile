@@ -114,13 +114,17 @@ pipeline {
                         dir('UserService') {
                             echo '🔨 UserService Gradle 빌드 시작...'
                             script {
+                                // withCredentials 블록을 이 단계에만 유지
                                 withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE')]) {
+                                    // 이 부분은 그대로 유지
                                     sh '''
                                         chmod +x gradlew
                                         ./gradlew clean build -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=${GCP_KEY_FILE}
                                         echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
                                     '''
+                                    // 변경된 부분: GCP_KEY_FILE 경로를 다음 단계에서 사용할 수 있도록 환경 변수에 저장
+                                    env.GCP_KEY_FILE_PATH = "${GCP_KEY_FILE}"
                                 }
                             }
                             echo '✅ UserService 빌드 완료!'
@@ -169,8 +173,8 @@ pipeline {
                                 # 새 이미지 pull
                                 docker pull ${DOCKER_REGISTRY}/user:latest
 
-                                # UserService 컨테이너 시작
-                                docker-compose -f ${COMPOSE_FILE} up -d user
+                                # 변경된 부분: 환경 변수를 사용하여 컨테이너 시작
+                                GOOGLE_CREDENTIALS_LOCATION=${env.GCP_KEY_FILE_PATH} docker-compose -f ${COMPOSE_FILE} up -d user
 
                                 # 컨테이너 상태 확인
                                 sleep 10
