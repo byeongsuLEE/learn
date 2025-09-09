@@ -19,6 +19,7 @@ public class GoogleCloudStorageConfig  {
     @Value("${google.cloud.storage.credentials.location}")
     private String credentialsLocation;
 
+    // 배포 테스트 6
     @Bean
     public Storage storage() throws IOException {
         GoogleCredentials credentials = GoogleCredentials.fromStream(getClass().getResourceAsStream(credentialsLocation));
