@@ -54,4 +54,12 @@ public class JPATest {
 
     }
 
+    @Test
+    @Transactional
+    void 패치성능테스트() {
+        em.createQuery("select deck from DeckEntity deck join fetch deck.cards", DeckEntity.class)
+                .getResultList();
+
+        assertThat(true).isTrue();
+    }
 }
