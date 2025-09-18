@@ -28,3 +28,5 @@ entity를 dto로 치환하는 방법을 사용하자.
 ## jpa dto 정리
 쿼리로 dto를 바로 조회보단 dto 변환을 이용하자.
 성능이 정말로 중요하면 복잡한 쿼리를 사용하는 repository를 하나 만들어서 사용하자.
+
+![img.png](img.png)
