@@ -30,3 +30,14 @@ entity를 dto로 치환하는 방법을 사용하자.
 성능이 정말로 중요하면 복잡한 쿼리를 사용하는 repository를 하나 만들어서 사용하자.
 
 ![img.png](img.png)
+
+## JPA distinct
+- JPA distinct는 sql에 distinct + 같은 엔티티를 기준으로 중복을 제거합니다.
+- 일대다 관계에서 fetch join 시 엔티티가 중복된 row 행들을 jpa distinct를 이용해서 해결할 수 있다.
+- db의 distinct와 다르게 모든 속성들이 다 같아야 되는게 아니라 entity가 같은 행들을 제거한다.
+- 단점
+  - 페이징 쿼리(getFirst 등 페이징 쿼리와 관련된 함수를 포함)와 같이 쓰지 못한다. (limit와 offset이 적용 x)
+  - 페이징이 안되는 이유는?
+    - collection fetch join과 페이징 쿼리가 들어가면 메모리에서 정렬을 해버립니다.(데이터 많으면 out of memory 발생)
+    - 일대다라서 데이터가 뻥튀기됩니다. 그래서 엔티티 기준으로 페이징이 불가능하다
+
