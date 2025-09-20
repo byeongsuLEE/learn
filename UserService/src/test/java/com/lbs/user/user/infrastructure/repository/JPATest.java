@@ -83,6 +83,9 @@ public class JPATest {
                             .collect(Collectors.toList());
                 });
 
+        em.flush();
+        em.clear();
+
 
 
 
