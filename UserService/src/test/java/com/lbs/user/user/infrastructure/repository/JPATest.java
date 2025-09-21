@@ -1,5 +1,6 @@
 package com.lbs.user.user.infrastructure.repository;
 
+import com.lbs.user.card.infrastructure.entity.CardEntity;
 import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.user.infrastructure.entity.UserEntity;
 import com.lbs.user.user.domain.Address;
@@ -102,6 +103,22 @@ public class JPATest {
                         "v.lastModifiedBy," +
                         "v.lastModifiedDate) from VideoEntity v " ));
         assertThat(true).isTrue();
+    }
+
+    @Test
+    @Transactional
+    void 페이징_성능최적화(){
+        // 테스트 : deck안에 있는 card들을 페이징하기 위해 hibernate_default_batch_fetch_size를 이용해서 성능 최적화를 해봅시다.
+//        DeckEntity singleResult = em.createQuery("select deck from DeckEntity deck where deck.id = 14", DeckEntity.class)
+//                .setFirstResult(0)
+//                .setMaxResults(100)
+//                .getSingleResult();
+//
+//        for ( CardEntity cardEntity : singleResult.getCards()) {
+//            log.info(cardEntity.getId().toString());
+//        }
+
+
     }
 
     public <T> T measurePerformance (String taskName , Supplier<T> task){

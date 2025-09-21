@@ -41,3 +41,12 @@ entity를 dto로 치환하는 방법을 사용하자.
     - collection fetch join과 페이징 쿼리가 들어가면 메모리에서 정렬을 해버립니다.(데이터 많으면 out of memory 발생)
     - 일대다라서 데이터가 뻥튀기됩니다. 그래서 엔티티 기준으로 페이징이 불가능하다
 
+## JPA 페이징 해결법
+1. ToOne 관계에서는 fetchjoin을 때리자. 데이터가 join 시 뻥튀기 되지 않는다.
+2. ToMany와 같은 컬렉션들을 가져올 때는 지연로딩으로 가져온다.
+- 지연 로딩을 최적화 하기 위해 hibernate.default.batch_fetch_size, @BatchSize 을 적용한다.
+- hibernate.default_batch_fetch_size : 글로 벌 설정
+- @BatchSize : 개별 최적화
+- 이 옵션은 컬렉션이나 프록시 객체를 한번에 설정한 size 만큼 in쿼리로 조회한다.
+
+
