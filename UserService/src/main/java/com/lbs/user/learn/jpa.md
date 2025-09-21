@@ -41,12 +41,24 @@ entity를 dto로 치환하는 방법을 사용하자.
     - collection fetch join과 페이징 쿼리가 들어가면 메모리에서 정렬을 해버립니다.(데이터 많으면 out of memory 발생)
     - 일대다라서 데이터가 뻥튀기됩니다. 그래서 엔티티 기준으로 페이징이 불가능하다
 
-## JPA 페이징 해결법
-1. ToOne 관계에서는 fetchjoin을 때리자. 데이터가 join 시 뻥튀기 되지 않는다.
-2. ToMany와 같은 컬렉션들을 가져올 때는 지연로딩으로 가져온다.
-- 지연 로딩을 최적화 하기 위해 hibernate.default.batch_fetch_size, @BatchSize 을 적용한다.
+## JPA 페이징 해결법 (1,2,3 다 적용)
+1. ToOne 관계에서는 fetch join을 때리자. 데이터가 join 시 뻥튀기 되지 않는다.
+2. ToMany와 같은 컬렉션들을 가져올 때는 지연로딩으로 가져온다. 
+3. 지연 로딩을 최적화 하기 위해 hibernate.default.batch_fetch_size, @BatchSize 을 적용한다.
 - hibernate.default_batch_fetch_size : 글로 벌 설정
-- @BatchSize : 개별 최적화
+- @BatchSize(size = 100) : 개별 최적화 (컬렉션은 entity 필드 위에 적용 가능 , 컬렉션이 아닌 엔티티는 엔티티 클래스에 적용)
 - 이 옵션은 컬렉션이나 프록시 객체를 한번에 설정한 size 만큼 in쿼리로 조회한다.
+
+- 장점
+  - 쿼리 호출 수 가 1+N -> 1+1로 최적화된다.
+  - deck과 card를 조인하면 deck 가 card의 개수만큼 중복되서 조회된다. 
+    - 위의 방법을 통해 중복 데이터를 제거할 수 있어 패치 조인 방식과 비교해서 쿼리 호출 수가 약간 증가하지만,DB데이터 전송량이 감소한다.
+  - 컬렉션 페치 조인은 페이징이 불가능 하지만 이 방법은 페이징이 가능하다.
+
+## 페이징 결론
+ToOne 관계는 페이징에 영향을 주지 않기 때문에 ToOne 관계는 페치 조인으로 쿼리 수를 줄여 해결하고,
+나머지는 hibernate.default_batch_fetch_size(1000개가 max)로 최적화 하자.
+join in을 사용하기 떄문에 100 ~ 1000 사이즈를 추천한다.
+1000개로 한다면 db와 어플리케이션의 부하가 높고, 100개로 하면 시간이 오래걸리기 때문에 어플리케이션이 잘 버틴다면 1000개를 하는 식으로 상황에 알맞게 선택하자.
 
 
