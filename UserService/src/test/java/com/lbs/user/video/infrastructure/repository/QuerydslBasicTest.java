@@ -1,10 +1,16 @@
 package com.lbs.user.video.infrastructure.repository;
 
+import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.infrastructure.entity.DeckEntity;
+import com.lbs.user.card.infrastructure.entity.QCardEntity;
+import com.lbs.user.card.infrastructure.entity.QDeckEntity;
 import com.lbs.user.video.infrastructure.entity.QVideoEntity;
 import com.lbs.user.video.infrastructure.entity.VideoEntity;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
@@ -20,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.lbs.user.card.infrastructure.entity.QCardEntity.cardEntity;
+import static com.lbs.user.card.infrastructure.entity.QDeckEntity.deckEntity;
 import static com.lbs.user.video.infrastructure.entity.QVideoEntity.videoEntity;
 
 /**
@@ -88,6 +96,8 @@ public class QuerydslBasicTest {
         QueryResults<VideoEntity> videoEntityQueryResults = queryFactory
                 .selectFrom(videoEntity)
                 .fetchResults();
+
+        long total = videoEntityQueryResults.getTotal();
 
 
         Assertions.assertThat(true).isTrue();
@@ -159,6 +169,8 @@ public class QuerydslBasicTest {
 
 
     }
+
+
 //     주석된 이유 - 메서드 체인에서 null 값이 반환될 경우 nullpointexception 에러가 발생한다.
 //    private BooleanExpression tagContains(String keyword) {
 //        return  keyword!=null ?  videoEntity.tag.containsIgnoreCase(keyword) : null ;
@@ -172,6 +184,71 @@ public class QuerydslBasicTest {
 //        return keyword!=null ?  videoEntity.title.containsIgnoreCase(keyword) : null ;
 //    }
 
+
+    @Test
+    void 검색(){
+
+        List<DeckEntity> deckEntityList = queryFactory.selectFrom(deckEntity)
+                .where(deckEntity.id.ne(1L))
+                .limit(3)
+
+                .fetch();
+
+        for (DeckEntity entity : deckEntityList) {
+            log.info(entity.getId().toString());
+        }
+
+        Assertions.assertThat(true).isTrue();
+    }
+
+    @Test
+    void or_검색(){
+
+        List<DeckEntity> deckEntityList = queryFactory.selectFrom(deckEntity)
+                .where(deckEntity.id.eq(2L)
+                        .or(deckEntity.id.eq(3L)).or(deckEntity.id.eq(4L)))
+                .limit(3)
+
+                .fetch();
+
+        for (DeckEntity entity : deckEntityList) {
+            log.info(entity.getId().toString());
+        }
+
+        Assertions.assertThat(true).isTrue();
+    }
+
+    @Test
+    void 조인_테스트(){
+
+        QDeckEntity qdeckEntity = deckEntity;
+        List<DeckEntity> fetch = queryFactory.selectFrom(deckEntity)
+                .from(deckEntity)
+                .join(deckEntity.cards, cardEntity)
+                .fetch();
+
+        Assertions.assertThat(true).isTrue();
+        //title 이름에 + 123 를 추가해보자
+
+
+    }
+
+    @Test
+    void 중복제거_테스트(){
+
+        QDeckEntity qdeckEntity = deckEntity;
+        List<DeckEntity> fetch = queryFactory.selectFrom(deckEntity)
+                .from(deckEntity)
+                .join(deckEntity.cards, cardEntity)
+                .distinct()
+                .fetch();
+
+        Assertions.assertThat(true).isTrue();
+        //title 이름에 + 123 를 추가해보자
+    }
+
+
+
     private BooleanExpression searchContains(String keyword) {
         // 키워드가 없으면 null 반환 -> where 절에서 무시됨
         if (keyword == null || keyword.isEmpty()) {
@@ -183,4 +260,8 @@ public class QuerydslBasicTest {
                 .or(videoEntity.description.containsIgnoreCase(keyword))
                 .or(videoEntity.tag.containsIgnoreCase(keyword));
     }
+
+
+
+
 }

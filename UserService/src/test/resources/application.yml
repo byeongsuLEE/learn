@@ -4,4 +4,4 @@ spring:
   config:
     import: optional:configserver:http://evil55.shop:8888
   profiles:
-    active: prod
+    active: local
