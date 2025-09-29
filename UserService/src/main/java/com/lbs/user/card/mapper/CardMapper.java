@@ -31,6 +31,10 @@ public interface CardMapper {
     //entity -> dto
     @Named("entityToResponseDto")
     @Mapping(source = ".", target = "auditInfo", qualifiedByName = "entityToAuditInfo")
+    // CardEntity의 deck 필드에 있는 id를 CardResponseDto의 deckId로 매핑합니다.
+    @Mapping(source = "deck.id", target = "deckId")
+    // CardEntity의 description 필드를 CardResponseDto의 desc로 매핑합니다.
+    @Mapping(source = "description", target = "desc")
     CardResponseDto entityToResponseDto(CardEntity cardEntity);
 
     //entity -> dto
