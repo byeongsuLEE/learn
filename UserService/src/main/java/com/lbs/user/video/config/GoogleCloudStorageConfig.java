@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 @Configuration
+@Profile("local") // 로컬 환경에서만 이 빈을 사
 public class GoogleCloudStorageConfig  {
     @Value("${google.cloud.storage.credentials.location}")
     private String credentialsLocation;
