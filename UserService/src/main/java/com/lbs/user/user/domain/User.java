@@ -21,6 +21,7 @@ public class User {
     private String password;
     private LocalDateTime joinDate;
     private Address address;
+    private String one;
 
     //ouath2
     private String name;
@@ -31,13 +32,14 @@ public class User {
 
     @Builder
     public User(Long id, String email, String password, LocalDateTime joinDate,
-                Address address, String name, String imageUrl,
+                Address address,String one, String name, String imageUrl,
                 String provider, String providerId, List<String> roles) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.joinDate = joinDate != null ? joinDate : LocalDateTime.now();
         this.address = address;
+        this.one = one;
         this.name = name;
         this.imageUrl = imageUrl;
         this.provider = provider;
