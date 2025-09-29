@@ -26,6 +26,19 @@ t.like("member%") : like 검색
 t.contain("member") : like `%member%`
 t.startsWith("member") : like `member%`
 
+## 집합
+```
+        List<Tuple> result = queryFactory.select(deckEntity.count(),
+                        deckEntity.cardCount.max(),
+                        deckEntity.lastModifiedDate.max())
+                .from(deckEntity)
+                .fetch();
+
+```
+위의 코드는 튜플인데 실전에서는 많이 사용하지 않고 DTO로 바로 조회하여 뽑아오는 걸 많이 사용한다.
+
+
+
 ## querydsl 벌크 연산
 1. 영속성 컨텍스트를 거치지 않고 쿼리가 날라가니 벌크 연산 이후 flush와 clear를 적용해서 영속성 컨텍스트를 비워주자
 
