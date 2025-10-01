@@ -1,5 +1,6 @@
 package com.lbs.user.user.infrastructure.entity;
 
+import com.lbs.user.card.infrastructure.entity.CardEntity;
 import com.lbs.user.user.domain.Address;
 import jakarta.persistence.*;
 import lombok.*;
@@ -55,5 +56,10 @@ public class UserEntity extends BaseEntity {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private List<String> roles = new ArrayList<>();
+
+
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserSettingsEntity userSettings;
 
 }
