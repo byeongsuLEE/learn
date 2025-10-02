@@ -1,11 +1,15 @@
 package com.lbs.user.user.controller;
 
+import com.lbs.user.user.domain.UserSettings;
+import com.lbs.user.user.dto.request.UserSettingRequestDto;
 import com.lbs.user.user.dto.response.UserResponseDto;
+import com.lbs.user.user.dto.response.UserSettingResponseDto;
 import com.lbs.user.user.mapper.UserMapper;
 import com.lbs.user.common.response.ApiResponse;
 import com.lbs.user.user.domain.User;
 import com.lbs.user.user.dto.request.UserJoinRequestDto;
 import com.lbs.user.user.service.UserService;
+import com.lbs.user.user.service.UserSettingService;
 import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +36,8 @@ public class UserController {
 
     private final Environment env;
     private final UserService userService ;
+    private final UserSettingService userSettingService;
+
     private final UserMapper  userMapper;
 
     @Value("${yml-name}")
@@ -84,5 +90,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK,userResponseDto));
     }
+
+
+    @PostMapping("/{id}/settings")
+    public ResponseEntity<ApiResponse<UserSettingResponseDto>> userSetting(@PathVariable Long id, @RequestBody UserSettingRequestDto userSettingRequestDto){
+       UserSettings userSetting =  userSettingService.updateSettings(id,userSettingRequestDto);
+       UserSettingResponseDto userSettingResponseDto = userSetting.userSettingToDto();
+       return ResponseEntity.status(HttpStatus.CREATED)
+               .body(ApiResponse.success(HttpStatus.CREATED,userSettingResponseDto));
+    }
+
 
 }

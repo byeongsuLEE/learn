@@ -1,5 +1,6 @@
 package com.lbs.user.user.infrastructure.entity;
 
+import com.lbs.user.user.domain.UserSettings;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -69,6 +70,36 @@ public class UserSettingsEntity {
 
 
 
+    public UserSettings mapToDomain(Long userId, UserSettingsEntity entity){
+        // user 지연로딩으로 인한 추가적인 쿼리를 방지하기 하기 위해 userId를 매개변수로 받음
+        return new UserSettings(
+                entity.id,
+                userId,
+                entity.studyNotify,
+                entity.friendActivityNotify,
+                entity.achieveNotify,
+                entity.emailNotify,
+                entity.language,
+                entity.theme,
+                entity.studyGoal,
+                entity.autoPlay,
+                entity.profileVisible,
+                entity.studyStatsVisible,
+                entity.friendsCanMessage
+        );
+    }
 
-
+    public void updateUserSettings(UserSettings userSettings) {
+        this.studyNotify = userSettings.studyNotify();
+        this.friendActivityNotify = userSettings.friendActivityNotify();
+        this.achieveNotify = userSettings.achieveNotify();
+        this.emailNotify = userSettings.emailNotify();
+        this.language = userSettings.language();
+        this.theme = userSettings.theme();
+        this.studyGoal = userSettings.studyGoal();
+        this.autoPlay = userSettings.autoPlay();
+        this.profileVisible = userSettings.profileVisible();
+        this.studyStatsVisible = userSettings.studyStatsVisible();
+        this.friendsCanMessage = userSettings.friendsCanMessage();
+    }
 }
