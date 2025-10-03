@@ -8,4 +8,5 @@ public interface UserSettingService {
     UserSettings getSettings(Long userId);
 
 
+    UserSettings createUserSettings(Long userId, UserSettingRequestDto request);
 }

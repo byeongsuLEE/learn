@@ -1,5 +1,6 @@
 package com.lbs.user.user.domain;
 
+import com.lbs.user.user.dto.request.UserSettingRequestDto;
 import com.lbs.user.user.dto.response.UserSettingResponseDto;
 
 /**
@@ -29,6 +30,22 @@ public record UserSettings (
     Boolean studyStatsVisible,
     Boolean friendsCanMessage
 ){
+
+    public static UserSettings requestToDomain(Long userId,UserSettingRequestDto request){
+        UserSettings userSettings = new UserSettings(request.id(), userId,request.studyNotify(),
+                request.friendActivityNotify(),
+                request.achieveNotify(),
+                request.emailNotify(),
+                request.language(),
+                request.theme(),
+                request.studyGoal(),
+                request.autoPlay(),
+                request.profileVisible(),
+                request.studyStatsVisible(),
+                request.friendsCanMessage());
+        return userSettings;
+    }
+
     public UserSettingResponseDto userSettingToDto() {
         return new UserSettingResponseDto(
                 this.studyNotify,
