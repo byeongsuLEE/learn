@@ -62,12 +62,26 @@ public class UserSettingsEntity {
     @Column(nullable= false, columnDefinition = "boolean default false")
     private boolean friendsCanMessage;
 
-
     @OneToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-
+    public static UserSettingsEntity create(UserSettings userSettings, UserEntity user) {
+        return UserSettingsEntity.builder()
+                .studyNotify(userSettings.studyNotify())
+                .friendActivityNotify(userSettings.friendActivityNotify())
+                .achieveNotify(userSettings.achieveNotify())
+                .emailNotify(userSettings.emailNotify())
+                .language(userSettings.language())
+                .theme(userSettings.theme())
+                .studyGoal(userSettings.studyGoal())
+                .autoPlay(userSettings.autoPlay())
+                .profileVisible(userSettings.profileVisible())
+                .studyStatsVisible(userSettings.studyStatsVisible())
+                .friendsCanMessage(userSettings.studyNotify())
+                .user(user)
+                .build();
+    }
 
 
     public UserSettings mapToDomain(Long userId, UserSettingsEntity entity){
