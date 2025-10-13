@@ -2,10 +2,7 @@ package com.lbs.user.friend.dto.response;
 
 import com.lbs.user.friend.dto.FriendStatus;
 import com.lbs.user.user.infrastructure.entity.FriendRequestStatus;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * 작성자  : lbs
@@ -13,7 +10,7 @@ import lombok.Setter;
  * 풀이방법
  **/
 
-
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

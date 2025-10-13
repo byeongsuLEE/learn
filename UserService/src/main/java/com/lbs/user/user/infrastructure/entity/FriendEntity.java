@@ -1,5 +1,6 @@
 package com.lbs.user.user.infrastructure.entity;
 
+import com.lbs.user.friend.domain.Friend;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,11 +22,17 @@ public class FriendEntity extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user1")
-    UserEntity user1;
+    @JoinColumn(name = "friend")
+    UserEntity friend;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user2")
-    UserEntity user2;
+    @JoinColumn(name = "owner")
+    UserEntity owner;
 
+    public static Friend mapToDomain(FriendEntity friendEntity) {
+        return Friend.builder()
+                .id(friendEntity.getId())
+                .friendUser(UserEntity.mapToDomain(friendEntity.getFriend()))
+                .build();
+    }
 }
