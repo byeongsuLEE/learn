@@ -1,10 +1,16 @@
 package com.lbs.user.friend.repository;
 
+import com.lbs.user.common.exception.UserNotFoundException;
+import com.lbs.user.common.response.ErrorCode;
 import com.lbs.user.friend.domain.Friend;
+import com.lbs.user.friend.domain.FriendRequest;
 import com.lbs.user.friend.dto.request.FriendRequestDto;
 import com.lbs.user.friend.infrastructure.jpa.FriendJPARepository;
 import com.lbs.user.friend.infrastructure.jpa.FriendRequestJPARepository;
 import com.lbs.user.user.infrastructure.entity.FriendEntity;
+import com.lbs.user.user.infrastructure.entity.FriendRequestEntity;
+import com.lbs.user.user.infrastructure.entity.UserEntity;
+import com.lbs.user.user.infrastructure.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +28,7 @@ public class FriendAdapterRepository implements FriendRepository {
 
     private final FriendJPARepository friendJPARepository;
     private final FriendRequestJPARepository friendRequestJPARepository ;
+    private final UserRepository userRepository;
 
     @Override
     public List<Friend> getFriends(Long userId) {
@@ -40,8 +47,22 @@ public class FriendAdapterRepository implements FriendRepository {
     }
 
     @Override
-    public void sendFriendRequest(FriendRequestDto friendRequestDto) {
+    public FriendRequest sendFriendRequest(FriendRequest friendRequest) {
 
+
+        //user repository 에서 sender , receiver 가져오기
+
+        UserEntity sender = userRepository.findById(friendRequest.getSenderId())
+                .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        UserEntity receiver = userRepository.findById(friendRequest.getReceiverId())
+                .orElseThrow(() -> new UserNotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        FriendRequestEntity friendRequestEntity = FriendRequestEntity.createFriendRequestEntity(sender, receiver, friendRequest.getStatus());
+
+        FriendRequestEntity savedEntity = friendRequestJPARepository.save(friendRequestEntity);
+
+        return savedEntity.entityToDomain();
     }
 
     @Override

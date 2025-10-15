@@ -1,6 +1,7 @@
 package com.lbs.user.user.infrastructure.entity;
 
 import com.lbs.user.friend.domain.Friend;
+import com.lbs.user.friend.domain.FriendRequest;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,4 +36,9 @@ public class FriendEntity extends BaseEntity {
                 .friendUser(UserEntity.mapToDomain(friendEntity.getFriend()))
                 .build();
     }
+//
+//    public static FriendEntity domainToEntity(FriendRequest friendRequest) {
+//
+//
+//    }
 }

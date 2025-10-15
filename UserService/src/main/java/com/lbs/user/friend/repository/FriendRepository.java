@@ -1,6 +1,7 @@
 package com.lbs.user.friend.repository;
 
 import com.lbs.user.friend.domain.Friend;
+import com.lbs.user.friend.domain.FriendRequest;
 import com.lbs.user.friend.dto.request.FriendRequestDto;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +13,7 @@ public interface FriendRepository {
     List<Friend> getFriends(Long userId);
     Friend deleteFriend(Long userId, Long friendId, String friendEmail);
 
-    void sendFriendRequest(FriendRequestDto friendRequestDto);
+    FriendRequest sendFriendRequest(FriendRequest friendRequest);
     void cancelFriendRequest(FriendRequestDto friendRequestDto);
     void acceptFriendRequest(FriendRequestDto friendRequestDto);
 }

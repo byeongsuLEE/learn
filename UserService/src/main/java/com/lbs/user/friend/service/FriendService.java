@@ -2,15 +2,15 @@ package com.lbs.user.friend.service;
 
 
 import com.lbs.user.friend.domain.Friend;
+import com.lbs.user.friend.domain.FriendRequest;
 import com.lbs.user.friend.dto.request.FriendRequestDto;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 
 public interface FriendService {
     List<Friend> getFriends(Long userId);
-    void sendFriendRequest(FriendRequestDto friendRequestDto);
+    FriendRequest sendFriendRequest(FriendRequestDto friendRequestDto);
     void cancelFriendRequest(FriendRequestDto friendRequestDto);
     Friend deleteFriend(Long userId, Long friendId, String friendEmail);
     void acceptFriendRequest(FriendRequestDto friendRequestDto);

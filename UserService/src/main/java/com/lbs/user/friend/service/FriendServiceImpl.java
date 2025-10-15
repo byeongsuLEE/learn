@@ -1,6 +1,7 @@
 package com.lbs.user.friend.service;
 
 import com.lbs.user.friend.domain.Friend;
+import com.lbs.user.friend.domain.FriendRequest;
 import com.lbs.user.friend.dto.request.FriendRequestDto;
 import com.lbs.user.friend.repository.FriendRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +25,15 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     public List<Friend> getFriends(Long userId) {
-        return List.of();
+        return friendRepository.getFriends(userId);
     }
 
     @Override
-    public void sendFriendRequest(FriendRequestDto friendRequestDto) {
+    public FriendRequest sendFriendRequest(FriendRequestDto friendRequestDto) {
+        FriendRequest friendRequest = friendRequestDto.mapTodomain();
 
+        FriendRequest createdFriendRequest = friendRepository.sendFriendRequest(friendRequest);
+        return createdFriendRequest;
     }
 
     @Override
