@@ -1,12 +1,17 @@
 package com.lbs.user.user.controller;
 
+import com.lbs.user.user.domain.UserSettings;
+import com.lbs.user.user.dto.request.UserSettingRequestDto;
 import com.lbs.user.user.dto.response.UserResponseDto;
+import com.lbs.user.user.dto.response.UserSettingResponseDto;
 import com.lbs.user.user.mapper.UserMapper;
 import com.lbs.user.common.response.ApiResponse;
 import com.lbs.user.user.domain.User;
 import com.lbs.user.user.dto.request.UserJoinRequestDto;
 import com.lbs.user.user.service.UserService;
+import com.lbs.user.user.service.UserSettingService;
 import io.micrometer.core.annotation.Timed;
+import jakarta.ws.rs.PUT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +37,8 @@ public class UserController {
 
     private final Environment env;
     private final UserService userService ;
+    private final UserSettingService userSettingService;
+
     private final UserMapper  userMapper;
 
     @Value("${yml-name}")
@@ -84,5 +91,31 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK,userResponseDto));
     }
+
+
+    @GetMapping("/{userId}/settings")
+    public ResponseEntity<ApiResponse<UserSettingResponseDto>> userSetting(@PathVariable Long userId){
+        UserSettings userSetting = userSettingService.getSettings(userId);
+        UserSettingResponseDto userSettingResponseDto = userSetting.userSettingToDto();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,userSettingResponseDto));
+    }
+
+    @PostMapping("/{userId}/settings")
+    public ResponseEntity<ApiResponse<UserSettingResponseDto>> userSetting(@PathVariable Long userId, @RequestBody UserSettingRequestDto userSettingRequestDto){
+       UserSettings userSetting =  userSettingService.createUserSettings(userId,userSettingRequestDto);
+       UserSettingResponseDto userSettingResponseDto = userSetting.userSettingToDto();
+       return ResponseEntity.status(HttpStatus.CREATED)
+               .body(ApiResponse.success(HttpStatus.CREATED,userSettingResponseDto));
+    }
+
+    @PatchMapping("/{userId}/settings")
+    public ResponseEntity<ApiResponse<UserSettingResponseDto>> updateUserSetting(@PathVariable Long userId, @RequestBody UserSettingRequestDto userSettingRequestDto){
+        UserSettings userSetting =  userSettingService.updateSettings(userId,userSettingRequestDto);
+        UserSettingResponseDto userSettingResponseDto = userSetting.userSettingToDto();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,userSettingResponseDto));
+    }
+
 
 }

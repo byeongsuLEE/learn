@@ -1,6 +1,8 @@
 package com.lbs.user.user.infrastructure.entity;
 
+import com.lbs.user.card.infrastructure.entity.CardEntity;
 import com.lbs.user.user.domain.Address;
+import com.lbs.user.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -56,4 +58,21 @@ public class UserEntity extends BaseEntity {
     @Column(name = "role")
     private List<String> roles = new ArrayList<>();
 
+
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserSettingsEntity userSettings;
+
+
+    public static User mapToDomain(UserEntity userEntity){
+        return User.builder()
+                .id(userEntity.getId())
+                .providerId(userEntity.getProviderId())
+                .roles(userEntity.getRoles())
+                .provider(userEntity.getProvider())
+                .imageUrl(userEntity.getImageUrl())
+                .one(userEntity.getOne())
+                .email(userEntity.getEmail())
+                .build();
+    }
 }

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND,"해당 유저가 없습니다"),
+    USER_SETTING_NOT_FOUND(HttpStatus.NOT_FOUND,"해당 유저 세팅 정보가 없습니다"),
     DECK_NOT_FOUND(HttpStatus.NOT_FOUND,"해당 낱말카드 묶음이 없습니다"),
     Exception_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"Exception 에러 입니다."),
     RuntimeException_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"Runtime 에러 입니다."),
