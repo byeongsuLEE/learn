@@ -1,6 +1,7 @@
 package com.lbs.user.friend.infrastructure.jpa;
 
 import com.lbs.user.user.infrastructure.entity.FriendEntity;
+import com.lbs.user.user.infrastructure.entity.FriendRequestEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -10,6 +11,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  **/
 
 
-public interface FriendRequestJPARepository extends JpaRepository<FriendEntity, Long> {
+public interface FriendRequestJPARepository extends JpaRepository<FriendRequestEntity, Long> {
 }
 

@@ -34,13 +34,23 @@ public class FriendRequest {
      * @param request
      * @return
      */
-    public static FriendRequest  createFriendRequest(FriendRequestDto request) {
+    public static FriendRequest  createFirstFriendRequest(FriendRequestDto request) {
         return  FriendRequest.builder()
                 .receiverId(request.getReceiverId())
                 .senderId(request.getSenderId())
                 .status(FriendRequestStatus.PENDING)
                 .build();
     }
+
+    public static FriendRequest  createFriendRequest(Long senderId, Long receiverId, FriendRequestStatus status) {
+        return  FriendRequest.builder()
+                .receiverId(senderId)
+                .senderId(receiverId)
+                .status(status)
+                .build();
+    }
+
+
 
     public FriendRequest changeStatus(FriendRequestStatus status) {
         this.status = status;
