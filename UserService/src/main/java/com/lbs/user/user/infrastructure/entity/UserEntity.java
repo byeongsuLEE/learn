@@ -73,6 +73,7 @@ public class UserEntity extends BaseEntity {
                 .imageUrl(userEntity.getImageUrl())
                 .one(userEntity.getOne())
                 .email(userEntity.getEmail())
+                .name(userEntity.getName())
                 .build();
     }
 }

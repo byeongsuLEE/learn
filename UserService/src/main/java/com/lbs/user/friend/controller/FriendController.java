@@ -58,6 +58,27 @@ public class FriendController {
                 .body(ApiResponse.success(HttpStatus.OK,"친구 요청 보내기 완료"));
     }
 
+    //
+
+    // 친구 요청 수락  api
+    // 질문
+    //1. 게임에서처럼 새로고침없이 수락 시 친구가 보이도록 하는 기능은 어떤 식으로 구현할 것인가?
+
+    @PatchMapping("request/{friend_request_id}/accept")
+    public ResponseEntity<ApiResponse<FriendResponseDto>> acceptedFriendRequest(@PathVariable(value = "friend_request_id") Long friendRequestId){
+        Friend friend = friendService.acceptFriendRequest(friendRequestId);
+
+        FriendResponseDto friendResponseDto = friend.mapToResponseDto(friend);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK,friendResponseDto));
+
+    }
+
+
+    //대기 중인 친구 요청 리스트 보기
+
+
+
 
 
 }
