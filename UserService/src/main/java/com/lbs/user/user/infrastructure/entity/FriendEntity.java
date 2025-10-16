@@ -3,6 +3,7 @@ package com.lbs.user.user.infrastructure.entity;
 import com.lbs.user.friend.domain.Friend;
 import com.lbs.user.friend.domain.FriendRequest;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
  * 풀이방법
  **/
 
+@Builder
 @Entity
 @Table(name = "friends")
 @NoArgsConstructor
@@ -29,6 +31,13 @@ public class FriendEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner")
     UserEntity owner;
+
+
+    public FriendEntity(Long id, UserEntity friend, UserEntity owner) {
+        this.id = id;
+        this.friend = friend;
+        this.owner = owner;
+    }
 
     public static Friend mapToDomain(FriendEntity friendEntity) {
         return Friend.builder()
