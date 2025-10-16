@@ -4,6 +4,7 @@ import com.lbs.user.user.infrastructure.entity.FriendEntity;
 import com.lbs.user.user.infrastructure.entity.FriendRequestEntity;
 import com.lbs.user.user.infrastructure.entity.FriendRequestStatus;
 import com.lbs.user.user.infrastructure.entity.UserEntity;
+import com.netflix.appinfo.ApplicationInfoManager;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -18,5 +19,7 @@ import java.util.Optional;
 public interface FriendRequestJPARepository extends JpaRepository<FriendRequestEntity, Long> {
 
     Optional<FriendRequestEntity> findBySenderAndReceiverAndStatus(UserEntity sender, UserEntity receiver, FriendRequestStatus status);
+
+    Optional<FriendRequestEntity> findBySenderAndReceiver(UserEntity sender, UserEntity receiver);
 }
 

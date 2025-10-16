@@ -1,5 +1,6 @@
 package com.lbs.user.friend.repository;
 
+import com.lbs.user.common.exception.FriendRequestException;
 import com.lbs.user.common.exception.UserNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import com.lbs.user.friend.domain.Friend;
@@ -50,10 +51,6 @@ public class FriendAdapterRepository implements FriendRepository {
 
     @Override
     public FriendRequest sendFriendRequest(FriendRequest friendRequest) {
-
-
-
-
         //user repository 에서 sender , receiver 가져오기
 
         UserEntity sender = userRepository.findById(friendRequest.getSenderId())
@@ -65,7 +62,7 @@ public class FriendAdapterRepository implements FriendRepository {
         Optional<FriendRequestEntity> bySenderAndReceiverAndStatus = friendRequestJPARepository.findBySenderAndReceiverAndStatus(sender, receiver, FriendRequestStatus.PENDING);
 
 
-        return friendRequestJPARepository.findBySenderAndReceiverAndStatus(sender, receiver, FriendRequestStatus.PENDING)
+        return friendRequestJPARepository.findBySenderAndReceiver(sender, receiver)
                  // 전에 보냈던 요청이 있다면 db에는 다시 저장하지 안하기
                  .map(FriendRequestEntity::entityToDomain)
                  // 이전의 보낸 요청이 없다면 데이터 베이스에 저장하기
@@ -79,13 +76,34 @@ public class FriendAdapterRepository implements FriendRepository {
 
     }
 
-    @Override
-    public void cancelFriendRequest(FriendRequestDto friendRequestDto) {
 
+
+    @Override
+    public Friend acceptFriendRequest(Long friendRequestId) {
+
+        FriendRequestEntity friendRequestEntity = getFriendRequestEntity(friendRequestId);
+
+        // 친구 요청 상태 pending -? accepted로 변경
+        friendRequestEntity.acceptFriendRequest();
+
+        //친구 entity 생성
+        FriendEntity friendEntity = createFriendEntity(friendRequestEntity);
+
+        friendJPARepository.save(friendEntity);
+
+        // friend entity -> domain 변환
+        return FriendEntity.mapToDomain(friendEntity);
     }
 
-    @Override
-    public void acceptFriendRequest(FriendRequestDto friendRequestDto) {
+    private FriendRequestEntity getFriendRequestEntity(Long friendRequestId) {
+        return friendRequestJPARepository.findById(friendRequestId)
+                .orElseThrow(() -> new FriendRequestException(ErrorCode.FRINED_NOT_FOUND));
+    }
 
+    private static FriendEntity createFriendEntity(FriendRequestEntity friendRequestEntity) {
+        return FriendEntity.builder()
+                .friend(friendRequestEntity.getSender())
+                .owner(friendRequestEntity.getReceiver())
+                .build();
     }
 }
