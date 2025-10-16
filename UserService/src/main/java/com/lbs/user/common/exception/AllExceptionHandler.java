@@ -20,6 +20,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class AllExceptionHandler {
 
+    @ExceptionHandler(FriendRequestException.class)
+    public ResponseEntity<ApiResponse<String>> handleFriendRequestException(FriendRequestException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.error(errorCode.getStatus(), errorCode.getMessage(), errorCode));
+
+    }
+
     @ExceptionHandler(UserSettingNotFoundException.class)
     public ResponseEntity<ApiResponse<String>> handleUserSettingNotFoundException(UserSettingNotFoundException userSettingNotFoundException) {
         ErrorCode errorCode = userSettingNotFoundException.getErrorCode();

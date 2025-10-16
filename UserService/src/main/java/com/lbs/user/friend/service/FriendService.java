@@ -13,5 +13,5 @@ public interface FriendService {
     FriendRequest sendFriendRequest(FriendRequestDto friendRequestDto);
     void cancelFriendRequest(FriendRequestDto friendRequestDto);
     Friend deleteFriend(Long userId, Long friendId, String friendEmail);
-    void acceptFriendRequest(FriendRequestDto friendRequestDto);
+    Friend acceptFriendRequest(Long friendRequestId);
 }
