@@ -1,7 +1,6 @@
 package com.lbs.user.user.infrastructure.entity;
 
 import com.lbs.user.friend.domain.FriendRequest;
-import com.lbs.user.friend.dto.request.FriendRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -55,10 +54,25 @@ public class FriendRequestEntity extends BaseEntity {
                 .build();
     }
 
-    public  FriendRequest entityToDomain(){
+    public static FriendRequest entityToDomain(FriendRequestEntity e) {
+        String email = e.getSender().getEmail();
 
-        return FriendRequest.createFriendRequest(this.sender.getId(),this.receiver.getId(),this.status);
+        return FriendRequest.createFriendRequest(e.sender.getId(),e.receiver.getId(),e.status);
     }
+
+    public static FriendRequest entityToDomain(FriendRequestEntity e, Long myId) {
+
+        String friendEmail = myId == e.sender.getId() ? e.getReceiver().getEmail() : e.getSender().getEmail();
+        String friendName = myId == e.sender.getId() ? e.getReceiver().getName() : e.getSender().getName();
+        Long friendId  = myId == e.sender.getId() ?  e.getReceiver().getId() :e.getSender().getId();
+
+        return FriendRequest.createFriendRequest(friendId,myId,e.status,friendEmail,friendName);
+    }
+
+//    public  FriendRequest entityToDomain(){
+//
+//        return FriendRequest.createFriendRequest(this.sender.getId(),this.receiver.getId(),this.status);
+//    }
 //
 //    public FriendRequestEntity mapToDomain(FriendRequest friendRequest, UserEntity sender, UserEntity receiver){
 //        return FriendRequestEntity.builder()

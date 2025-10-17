@@ -26,6 +26,11 @@ public class FriendRequest {
     Long receiverId;
     FriendRequestStatus status;
 
+    String friendName ;
+    String friendEmail;
+    Long friendId;
+
+
     /**
      * 친구 요청 도메인 객체 생성
      * @작성자   : lbs
@@ -50,13 +55,23 @@ public class FriendRequest {
                 .build();
     }
 
+    public static FriendRequest createFriendRequest(Long friendId, Long myId, FriendRequestStatus status, String friendEmail, String friendName) {
+        return  FriendRequest.builder()
+                .friendEmail(friendEmail)
+                .friendName(friendName)
+                .friendId(friendId)
+                .receiverId(friendId)
+                .senderId(myId)
+                .status(status)
+                .build();
+
+    }
 
 
     public FriendRequest changeStatus(FriendRequestStatus status) {
         this.status = status;
         return this;
     }
-
 
 
 

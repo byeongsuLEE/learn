@@ -14,4 +14,6 @@ public interface FriendRepository {
 
     FriendRequest sendFriendRequest(FriendRequest friendRequest);
     Friend acceptFriendRequest(Long friendRequestDto);
+
+    List<FriendRequest> getFriendRequest(Long userId);
 }

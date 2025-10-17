@@ -43,6 +43,12 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    public List<FriendRequest> getFriendRequests(Long userId) {
+        return friendRepository.getFriendRequest(userId);
+
+    }
+
+    @Override
     public void cancelFriendRequest(FriendRequestDto friendRequestDto) {
 
     }

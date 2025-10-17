@@ -5,7 +5,6 @@ import com.lbs.user.common.exception.UserNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import com.lbs.user.friend.domain.Friend;
 import com.lbs.user.friend.domain.FriendRequest;
-import com.lbs.user.friend.dto.request.FriendRequestDto;
 import com.lbs.user.friend.infrastructure.jpa.FriendJPARepository;
 import com.lbs.user.friend.infrastructure.jpa.FriendRequestJPARepository;
 import com.lbs.user.user.infrastructure.entity.FriendEntity;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 작성자  : lbs
@@ -35,7 +35,7 @@ public class FriendAdapterRepository implements FriendRepository {
 
     @Override
     public List<Friend> getFriends(Long userId) {
-        List<FriendEntity> friendEntityList = friendJPARepository.findByOwner_Id(userId);
+        List<FriendEntity> friendEntityList = friendJPARepository.findByRequester_id(userId);
 
         List<Friend> friendList = friendEntityList.stream()
                 .map((f) -> FriendEntity.mapToDomain(f))
@@ -71,7 +71,7 @@ public class FriendAdapterRepository implements FriendRepository {
 
                     FriendRequestEntity savedEntity = friendRequestJPARepository.save(friendRequestEntity);
 
-                    return savedEntity.entityToDomain();
+                    return savedEntity.entityToDomain(savedEntity);
                 });
 
     }
@@ -95,6 +95,19 @@ public class FriendAdapterRepository implements FriendRepository {
         return FriendEntity.mapToDomain(friendEntity);
     }
 
+    @Override
+    public List<FriendRequest> getFriendRequest(Long userId) {
+
+        List<FriendRequestEntity> friendRequestEntityList = friendRequestJPARepository.findAllByReceiver_IdOrSender_IdAndStatus(userId, userId, FriendRequestStatus.PENDING);
+
+
+        List<FriendRequest> friendRequestList = friendRequestEntityList.stream()
+                .map( (e) ->  FriendRequestEntity.entityToDomain(e,userId))
+                .toList();
+
+        return friendRequestList;
+    }
+
     private FriendRequestEntity getFriendRequestEntity(Long friendRequestId) {
         return friendRequestJPARepository.findById(friendRequestId)
                 .orElseThrow(() -> new FriendRequestException(ErrorCode.FRINED_NOT_FOUND));
@@ -102,8 +115,8 @@ public class FriendAdapterRepository implements FriendRepository {
 
     private static FriendEntity createFriendEntity(FriendRequestEntity friendRequestEntity) {
         return FriendEntity.builder()
-                .friend(friendRequestEntity.getSender())
-                .owner(friendRequestEntity.getReceiver())
+                .requester(friendRequestEntity.getSender())
+                .accepter(friendRequestEntity.getReceiver())
                 .build();
     }
 }

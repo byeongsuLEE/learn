@@ -2,7 +2,9 @@ package com.lbs.user.friend.controller;
 
 import com.lbs.user.common.response.ApiResponse;
 import com.lbs.user.friend.domain.Friend;
+import com.lbs.user.friend.domain.FriendRequest;
 import com.lbs.user.friend.dto.request.FriendRequestDto;
+import com.lbs.user.friend.dto.response.FriendRequestResponseDto;
 import com.lbs.user.friend.dto.response.FriendResponseDto;
 import com.lbs.user.friend.service.FriendService;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +79,15 @@ public class FriendController {
 
     //대기 중인 친구 요청 리스트 보기
 
+    @GetMapping("request/{user_id}")
+    public ResponseEntity<ApiResponse<List<FriendRequestResponseDto>>> getFriendRequests(@PathVariable(value ="user_id") Long id){
+        List<FriendRequest> friendRequests = friendService.getFriendRequests(id);
+        List<FriendRequestResponseDto> friendRequestResponseDtoList = friendRequests.stream()
+                .map(FriendRequestResponseDto::mapToResponseDto)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK, friendRequestResponseDtoList));
+    }
 
 
 
