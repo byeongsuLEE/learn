@@ -1,12 +1,10 @@
 package com.lbs.user.user.infrastructure.entity;
 
 import com.lbs.user.friend.domain.Friend;
-import com.lbs.user.friend.domain.FriendRequest;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 /**
  * 작성자  : lbs
@@ -25,24 +23,24 @@ public class FriendEntity extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "friend")
-    UserEntity friend;
+    @JoinColumn(name = "request_id")
+    UserEntity requester;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner")
-    UserEntity owner;
+    @JoinColumn(name = "accpeter_id")
+    UserEntity accepter;
 
 
-    public FriendEntity(Long id, UserEntity friend, UserEntity owner) {
+    public FriendEntity(Long id, UserEntity requester, UserEntity accepter) {
         this.id = id;
-        this.friend = friend;
-        this.owner = owner;
+        this.requester = requester;
+        this.accepter = accepter;
     }
 
     public static Friend mapToDomain(FriendEntity friendEntity) {
         return Friend.builder()
                 .id(friendEntity.getId())
-                .friendUser(UserEntity.mapToDomain(friendEntity.getFriend()))
+                .friendUser(UserEntity.mapToDomain(friendEntity.getRequester()))
                 .build();
     }
 //
