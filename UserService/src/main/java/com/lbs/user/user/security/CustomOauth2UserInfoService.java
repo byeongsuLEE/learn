@@ -56,7 +56,9 @@ public class CustomOauth2UserInfoService extends DefaultOAuth2UserService  {
                     .providerId(id)
                     .roles(List.of("ROLE_USER"))
                     .build();
-            userService.joinUser(user);
+            user = userService.joinUser(user);
+
+
         }
         // 해당 정보를 가지고
         return new CustomOauth2User(oAuth2User,user);

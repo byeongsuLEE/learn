@@ -54,7 +54,7 @@ public class CustomOidcUserInfoService extends OidcUserService {
                    .providerId(id)
                    .roles(List.of("ROLE_USER"))
                            .build();
-            userService.joinUser(user);
+            user = userService.joinUser(user);
         }
         // 해당 정보를 가지고
         return new CustomOidcUser(oidcUser,user);

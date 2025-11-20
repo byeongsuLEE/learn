@@ -26,7 +26,7 @@ public class GoogleStorageServiceImpl implements StorageService {
 
     @Override
     public String uploadVideo(MultipartFile file) {
-       String bucketName = "evil55";
+       String bucketName = "evil55_2";
        String objectName = "videos/" + file.getOriginalFilename();
 
        try{
