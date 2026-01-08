@@ -65,7 +65,7 @@ public class SecurityConfig {
                                 .anyRequest().permitAll()
                 )
 
-                .logout(logout -> logout.logoutSuccessUrl("http://localhost:3000"));
+                .logout(logout -> logout.logoutSuccessUrl("http://evil55.shop:3000"));
 
 
 

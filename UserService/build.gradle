@@ -60,6 +60,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+    // AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
     // JWT 관련 의존성
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'

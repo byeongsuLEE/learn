@@ -8,6 +8,7 @@ import com.lbs.user.card.infrastructure.entity.DeckEntity;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.card.mapper.CardMapper;
 import com.lbs.user.card.mapper.DeckMapper;
+import com.lbs.user.common.annotation.TimeTrace;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 @Slf4j
+@TimeTrace
 public class JpaDeckRepositoryAdapter implements DeckRepository {
 
 
