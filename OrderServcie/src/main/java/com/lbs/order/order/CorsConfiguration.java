@@ -19,7 +19,7 @@ public class CorsConfiguration implements WebMvcConfigurer {
                 .allowedOrigins( // 허용할 도메인들
                         "http://localhost:3000",    // 로컬 React 개발서버
                         "http://localhost:3001",    // 다른 포트
-                        "https://evil55.shop"      // 운영 도메인
+                        "https://evil55.cloud"      // 운영 도메인
                               // 다른 운영 도메인
                 )
                 .allowedMethods( // 허용할 HTTP 메서드

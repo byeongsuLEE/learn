@@ -3,7 +3,7 @@ spring:
   application:
     name: learn-order
   config:
-    import: optional:configserver:http://evil55.shop:8888
+    import: optional:configserver:http://evil55.cloud:8888
 
 management:
   endpoints:

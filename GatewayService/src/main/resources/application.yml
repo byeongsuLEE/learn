@@ -41,7 +41,7 @@ spring:
             - AddRequestHeader=board-request, board-request-header2   # 띄어쓰기 하나 하나가 중요하다. 주의!
             - AddResponseHeader=board-response, board-response-header2
 #  kafka:
-#    bootstrap-servers: evil55.shop:19092
+#    bootstrap-servers: evil55.cloud:19092
 
 management:
   endpoints:

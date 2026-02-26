@@ -301,8 +301,8 @@ pipeline {
 
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceHealthMap = [
-                        'UserService': 'http://evil55.shop/api/user-service/actuator/health',
-                        'GatewayService': 'http://evil55.shop:8000/actuator/health'
+                        'UserService': 'http://evil55.cloud/api/user-service/actuator/health',
+                        'GatewayService': 'http://evil55.cloud:8000/actuator/health'
                     ]
 
                     def failedServices = []
@@ -436,11 +436,11 @@ pipeline {
                     def services = deployedServices.split(',')
                     services.each { service ->
                         if (service == 'UserService') {
-                            echo "  - UserService API: https://evil55.shop/api/user-service"
-                            echo "  - UserService Health: http://evil55.shop:8081/actuator/health"
+                            echo "  - UserService API: https://evil55.cloud/api/user-service"
+                            echo "  - UserService Health: http://evil55.cloud:8081/actuator/health"
                         } else if (service == 'GatewayService') {
-                            echo "  - Gateway: https://evil55.shop"
-                            echo "  - Gateway Health: http://evil55.shop:8000/actuator/health"
+                            echo "  - Gateway: https://evil55.cloud"
+                            echo "  - Gateway Health: http://evil55.cloud:8000/actuator/health"
                         }
                     }
 

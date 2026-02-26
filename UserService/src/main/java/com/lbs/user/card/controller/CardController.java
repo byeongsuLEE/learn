@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestController;ddddd
 
 /**
  * 작성자  : lbs
@@ -17,18 +17,17 @@ import org.springframework.web.bind.annotation.RestController;
  * 풀이방법
  **/
 
+@RestController @RequestMapping("/card")
 
-@RestController
-@RequestMapping("/card")
 @RequiredArgsConstructor
 
 // ....
 public class CardController {
 
     @PostMapping
-    public ResponseEntity<ApiResponse<CardResponseDto>> createCard (CreateCardRequestDto createCardRequestDto){
+    public ResponseEntity<ApiResponse<CardResponseDto>> createCard(CreateCardRequestDto createCardRequestDto) {
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(HttpStatus.OK,"카드 만들기 성공", null));
+                .body(ApiResponse.success(HttpStatus.OK, "카드 만들기 성공", null));
     }
 }

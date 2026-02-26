@@ -3,7 +3,7 @@ spring:
   application:
     name: learn-user
   config:
-    import: optional:configserver:http://evil55.shop:8888
+    import: optional:configserver:http://evil55.cloud:8888
 
 ---
 spring:
@@ -41,7 +41,7 @@ management:
 #  application:
 #    name: user-service
 #  datasource:
-#    videoURL: jdbc:mysql://evil55.shop:3306/lbs
+#    videoURL: jdbc:mysql://evil55.cloud:3306/lbs
 #    username: evil55
 #    password: a980523
 #    driver-class-name: com.mysql.cj.jdbc.Driver
