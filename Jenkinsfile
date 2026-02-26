@@ -20,7 +20,7 @@ pipeline {
                 echo '✅ GitHub 연결 성공!'
             }
         }
-
+// build test
 //         //  GCP 키 파일 준비
 //         stage('Prepare GCP Credentials') {
 //             steps {
