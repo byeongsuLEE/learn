@@ -5,6 +5,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
         DOCKER_REGISTRY = 'evil55'
         COMPOSE_FILE = '/home/lbs/docker-compose-back.yml'
+        DISCORD_URL = credentials('discord-webhook-url')
     }
 
     stages {
@@ -423,15 +424,23 @@ pipeline {
         success {
             script {
                 def deployedServices = env.CHANGED_SERVICES ?: ''
+
+                // 디스코드 알림을 위한 변수 설정
+                def discordMsg = ""
+
                 if (deployedServices.trim() == '') {
                     echo '🎉 파이프라인 완료! (배포된 서비스 없음)'
                     echo '✨ 변경사항이 없어 배포를 건너뛰었습니다.'
                     echo "📋 빌드 번호: ${env.BUILD_NUMBER}"
                     echo "📋 완료 시간: ${new Date()}"
+
+                    discordMsg = "✨ 변경사항이 없어 배포를 건너뛰었습니다."
                 } else {
                     echo '🎉 서비스 배포 파이프라인 성공!'
                     echo "✅ 배포된 서비스: ${deployedServices}"
                     echo "🌐 서비스 접속 URL:"
+
+                    discordMsg = "✅ 배포된 서비스: ${deployedServices}\n🌐 https://evil55.cloud"
 
                     def services = deployedServices.split(',')
                     services.each { service ->
@@ -448,12 +457,30 @@ pipeline {
                     echo "  - 빌드 번호: ${env.BUILD_NUMBER}"
                     echo "  - 배포 시간: ${new Date()}"
                 }
+
+                // 성공 알림 전송 (Discord)
+                discordSend(
+                    webhookURL: "${env.DISCORD_URL}",
+                    title: "🚀 배포 성공: Build #${env.BUILD_NUMBER}",
+                    link: env.RUN_DISPLAY_URL,
+                    description: discordMsg,
+                    result: 'SUCCESS'
+                )
             }
         }
         failure {
             script {
                 echo '❌ 서비스 배포 파이프라인 실패!!'
                 echo "❌ 실패한 서비스: ${env.CHANGED_SERVICES ?: 'none'}"
+
+                // 실패 알림 전송 (Discord)
+                discordSend(
+                    webhookURL: "${env.DISCORD_URL}",
+                    title: "❌ 배포 실패: Build #${env.BUILD_NUMBER}",
+                    link: env.RUN_DISPLAY_URL,
+                    description: "🚨 실패 서비스: ${env.CHANGED_SERVICES ?: '확인 필요'}\n📍 로그 확인을 위해 제목 링크를 클릭하세요.",
+                    result: 'FAILURE'
+                )
 
                 sh '''
                     echo "=== 실패 시점 전체 컨테이너 상태 ==="
