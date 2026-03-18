@@ -1,5 +1,5 @@
 # 기본 OpenJDK 17 이미지를 사용
-FROM openjdk:17
+FROM eclipse-temurin:17-jre
 
 # /app 디렉토리로 작업 디렉토리 설정
 WORKDIR /app
