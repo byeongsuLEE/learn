@@ -72,4 +72,52 @@ public class RedisDataGenerator {
         log.info("Completed generation of 1000 schedules. Current size for mapping {}: {}", key,
                 scheduleTemplate.opsForHash().size(key));
     }
+
+    public void generate100000SchedulesForToday() {
+        LocalDate now = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String dateStr = now.format(formatter);
+        String key = "SCHEDULE:" + dateStr;
+
+        log.info("Starting generation of 100,000 schedules for today ({}) in Redis (DB {})...", dateStr,
+                getDbIndex(scheduleTemplate));
+
+        int total = 100000;
+        int batchSize = 1000;
+
+        for (int i = 0; i < total; i += batchSize) {
+            final int start = i;
+            final int end = Math.min(i + batchSize, total);
+
+            scheduleTemplate
+                    .executePipelined((org.springframework.data.redis.core.RedisCallback<Object>) connection -> {
+                        for (int j = start; j < end; j++) {
+                            String field = "COUPLE_" + j;
+                            CreateScheduleInputDto dto = CreateScheduleInputDto.builder()
+                                    .title("100k Schedule " + j)
+                                    .content("Content for " + field)
+                                    .productId((long) (Math.random() * 100000))
+                                    .type(j % 2 == 0 ? "WEDDING_HALL" : "STUDIO")
+                                    .build();
+
+                            byte[] keyBytes = scheduleTemplate.getStringSerializer().serialize(key);
+                            byte[] fieldBytes = scheduleTemplate.getStringSerializer().serialize(field);
+                            byte[] valueBytes = ((org.springframework.data.redis.serializer.RedisSerializer<Object>) scheduleTemplate
+                                    .getValueSerializer()).serialize(dto);
+
+                            connection.hashCommands().hSet(keyBytes, fieldBytes, valueBytes);
+                        }
+                        return null;
+                    });
+
+            if (end % 10000 == 0) {
+                log.info("Progress: {}/{} schedules generated...", end, total);
+            }
+        }
+
+        log.info("Completed generation of 100,000 schedules. Key: {}", key);
+    }
+
+
+
 }
