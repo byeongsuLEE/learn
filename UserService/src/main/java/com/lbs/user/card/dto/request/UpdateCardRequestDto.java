@@ -1,8 +1,7 @@
 package com.lbs.user.card.dto.request;
 
 import com.lbs.user.card.domain.Card;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
@@ -11,7 +10,7 @@ import lombok.NoArgsConstructor;
  * 풀이방법
  **/
 
-@Getter
+@Data
 @NoArgsConstructor
 public class UpdateCardRequestDto {
     private Long cardId; // ← 수정 시 필수

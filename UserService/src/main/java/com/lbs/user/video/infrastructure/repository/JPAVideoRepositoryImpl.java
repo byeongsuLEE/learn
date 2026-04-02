@@ -109,7 +109,6 @@ public class JPAVideoRepositoryImpl implements VideoRepository {
 
     private BooleanExpression createSearchCondition(VideoSearchDto videoSearchDto) {
         String keyword = videoSearchDto.keyword();
-
         if (keyword == null || keyword.isEmpty()) {
             return null;
         }
