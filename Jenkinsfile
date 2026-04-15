@@ -39,7 +39,7 @@ pipeline {
 //                 }
 //             }
 //         }
-// webhook test
+// webhook 포트포워딩 대신 nginx 프록시 패스로 변경 후 텟트ㅡ
 
         stage('Detect Changed Services') {
             steps {
