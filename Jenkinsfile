@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
         DOCKER_REGISTRY = 'evil55'
-        COMPOSE_FILE = '/home/lbs/docker-compose-back.yml'
+        COMPOSE_FILE = '/home/lbs/docker-compose.yml'
         DISCORD_URL = credentials('discord-webhook-url')
     }
 
