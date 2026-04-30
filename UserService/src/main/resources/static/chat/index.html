@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅 테스트 클라이언트</title>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background: #f5f5f5; padding: 16px; }
+        h2 { margin-bottom: 12px; color: #333; }
+        .section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; margin-bottom: 8px; }
+        textarea { height: 80px; resize: vertical; }
+        button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; margin-right: 6px; }
+        .btn-primary { background: #4a90e2; color: #fff; }
+        .btn-danger  { background: #e25555; color: #fff; }
+        .btn-success { background: #27ae60; color: #fff; }
+        .btn-info    { background: #8e44ad; color: #fff; }
+        #messages { height: 300px; overflow-y: auto; border: 1px solid #ddd; background: #fafafa; padding: 8px; border-radius: 4px; font-size: 13px; }
+        .msg-in  { color: #1565c0; margin: 4px 0; }
+        .msg-out { color: #2e7d32; margin: 4px 0; }
+        .msg-sys { color: #888; font-style: italic; margin: 4px 0; }
+        .status  { font-size: 12px; color: #888; margin-top: 4px; }
+        #status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ccc; margin-right: 6px; }
+        #status-dot.connected { background: #27ae60; }
+    </style>
+</head>
+<body>
+
+<h2>💬 채팅 테스트 클라이언트</h2>
+
+<!-- 연결 설정 -->
+<div class="section">
+    <h3 style="margin-bottom:10px;">WebSocket 연결</h3>
+    <label>JWT Token (Bearer 없이 토큰만)</label>
+    <textarea id="jwt-token" placeholder="eyJhbGci..."></textarea>
+    <label>WebSocket URL</label>
+    <input id="ws-url" value="ws://localhost:8080/ws-chat" />
+    <label>Room ID</label>
+    <input id="room-id" value="1" type="number" />
+    <div>
+        <button class="btn-primary" onclick="connect()">Connect</button>
+        <button class="btn-danger"  onclick="disconnect()">Disconnect</button>
+        <span id="status-dot"></span><span id="conn-status">연결 안됨</span>
+    </div>
+</div>
+
+<!-- REST: 채팅방 API -->
+<div class="section">
+    <h3 style="margin-bottom:10px;">REST API</h3>
+    <label>API Base URL</label>
+    <input id="api-base" value="http://localhost:8080" />
+    <label>userId</label>
+    <input id="user-id" value="1" type="number" />
+    <label>Role</label>
+    <select id="user-role">
+        <option value="PARENT">PARENT</option>
+        <option value="ACADEMY">ACADEMY</option>
+    </select>
+    <div style="margin-bottom:8px;">
+        <button class="btn-primary" onclick="createRoom()">채팅방 생성/조회</button>
+        <button class="btn-info"    onclick="getRooms()">내 채팅방 목록</button>
+        <button class="btn-info"    onclick="getMessages()">메시지 내역</button>
+    </div>
+    <label>이미지 업로드 (Presigned URL)</label>
+    <input type="file" id="img-file" accept="image/*" />
+    <button class="btn-success" onclick="uploadImage()">이미지 업로드 후 전송</button>
+</div>
+
+<!-- 메시지 전송 -->
+<div class="section">
+    <h3 style="margin-bottom:10px;">STOMP 메시지 전송</h3>
+    <label>텍스트 메시지</label>
+    <input id="msg-input" placeholder="메시지 입력..." onkeydown="if(event.key==='Enter')sendText()" />
+    <button class="btn-success" onclick="sendText()">전송</button>
+</div>
+
+<!-- 수신 메시지 -->
+<div class="section">
+    <h3 style="margin-bottom:10px;">메시지 로그</h3>
+    <div id="messages"></div>
+    <button onclick="clearLog()" style="margin-top:8px; background:#eee; border:1px solid #ccc; border-radius:4px; padding:4px 12px; cursor:pointer; font-size:12px;">로그 지우기</button>
+</div>
+
+<script>
+let client = null;
+
+function log(text, cls = 'msg-sys') {
+    const el = document.getElementById('messages');
+    const p = document.createElement('p');
+    p.className = cls;
+    p.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+    el.appendChild(p);
+    el.scrollTop = el.scrollHeight;
+}
+
+function clearLog() { document.getElementById('messages').innerHTML = ''; }
+
+function setStatus(connected) {
+    const dot = document.getElementById('status-dot');
+    const txt = document.getElementById('conn-status');
+    dot.className = connected ? 'connected' : '';
+    txt.textContent = connected ? '연결됨' : '연결 안됨';
+}
+
+function connect() {
+    const token = document.getElementById('jwt-token').value.trim();
+    const wsUrl = document.getElementById('ws-url').value.trim();
+    const roomId = document.getElementById('room-id').value.trim();
+
+    client = new StompJs.Client({
+        brokerURL: wsUrl,
+        connectHeaders: token ? { Authorization: 'Bearer ' + token } : {},
+        debug: str => log('[DEBUG] ' + str),
+        reconnectDelay: 5000,
+        onConnect: () => {
+            setStatus(true);
+            log('STOMP 연결 성공');
+            client.subscribe('/sub/chat/rooms/' + roomId, msg => {
+                const body = JSON.parse(msg.body);
+                log('수신: ' + JSON.stringify(body), 'msg-in');
+            });
+            log('/sub/chat/rooms/' + roomId + ' 구독 완료');
+        },
+        onDisconnect: () => { setStatus(false); log('연결 해제'); },
+        onStompError: frame => { setStatus(false); log('STOMP 오류: ' + frame.headers.message, 'msg-sys'); }
+    });
+    client.activate();
+}
+
+function disconnect() {
+    if (client) { client.deactivate(); client = null; }
+    setStatus(false);
+    log('연결 해제 요청');
+}
+
+function sendText() {
+    const text = document.getElementById('msg-input').value.trim();
+    const roomId = document.getElementById('room-id').value.trim();
+    if (!client || !client.connected) { log('먼저 연결하세요'); return; }
+    if (!text) return;
+    const payload = { messageType: 'TEXT', content: text, imageUrl: null };
+    client.publish({ destination: '/pub/chat/rooms/' + roomId + '/send', body: JSON.stringify(payload) });
+    log('전송: ' + text, 'msg-out');
+    document.getElementById('msg-input').value = '';
+}
+
+function apiBase() { return document.getElementById('api-base').value.trim(); }
+function authHeader() {
+    const token = document.getElementById('jwt-token').value.trim();
+    return token ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+}
+
+async function createRoom() {
+    const userId = document.getElementById('user-id').value;
+    const role = document.getElementById('user-role').value;
+    const roomId = document.getElementById('room-id').value;
+    const academyId = role === 'ACADEMY' ? userId : roomId;
+    const parentId  = role === 'PARENT'  ? userId : roomId;
+    const res = await fetch(apiBase() + '/api/user-service/chat/rooms/create', {
+        method: 'POST', headers: authHeader(),
+        body: JSON.stringify({ academyId: parseInt(academyId), parentId: parseInt(parentId) })
+    });
+    const json = await res.json();
+    log('채팅방 응답: ' + JSON.stringify(json));
+    if (json.data?.roomId) { document.getElementById('room-id').value = json.data.roomId; }
+}
+
+async function getRooms() {
+    const userId = document.getElementById('user-id').value;
+    const role = document.getElementById('user-role').value;
+    const res = await fetch(`${apiBase()}/api/user-service/chat/rooms?userId=${userId}&role=${role}`, {
+        headers: authHeader()
+    });
+    const json = await res.json();
+    log('채팅방 목록: ' + JSON.stringify(json));
+}
+
+async function getMessages() {
+    const roomId = document.getElementById('room-id').value;
+    const userId = document.getElementById('user-id').value;
+    const role = document.getElementById('user-role').value;
+    const res = await fetch(`${apiBase()}/api/user-service/chat/rooms/${roomId}/messages?userId=${userId}&role=${role}&size=10`, {
+        headers: authHeader()
+    });
+    const json = await res.json();
+    log('메시지 내역: ' + JSON.stringify(json));
+}
+
+async function uploadImage() {
+    const file = document.getElementById('img-file').files[0];
+    if (!file) { log('파일을 선택해주세요'); return; }
+    const roomId = document.getElementById('room-id').value;
+    const userId = document.getElementById('user-id').value;
+
+    // 1. presigned URL 발급
+    const res = await fetch(`${apiBase()}/api/user-service/chat/uploads/presigned_url?userId=${userId}`, {
+        method: 'POST', headers: authHeader(),
+        body: JSON.stringify({ fileType: file.type, roomId: parseInt(roomId) })
+    });
+    const json = await res.json();
+    if (!json.data?.uploadUrl) { log('URL 발급 실패: ' + JSON.stringify(json)); return; }
+
+    // 2. PUT 업로드
+    log('이미지 업로드 중...');
+    const uploadRes = await fetch(json.data.uploadUrl, { method: 'PUT', body: file });
+    if (!uploadRes.ok) { log('업로드 실패: ' + uploadRes.status); return; }
+
+    // 3. IMAGE 메시지 전송
+    const payload = { messageType: 'IMAGE', content: null, imageUrl: json.data.fileUrl };
+    if (client && client.connected) {
+        client.publish({ destination: '/pub/chat/rooms/' + roomId + '/send', body: JSON.stringify(payload) });
+        log('이미지 메시지 전송 완료: ' + json.data.fileUrl, 'msg-out');
+    } else {
+        log('이미지 URL: ' + json.data.fileUrl + ' (STOMP 미연결 - 수동으로 전송 필요)');
+    }
+}
+</script>
+</body>
+</html>

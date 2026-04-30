@@ -134,9 +134,10 @@ public class JWTExceptionFilter extends OncePerRequestFilter {
     private String createNewAccessToken(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         String accessToken = jwtTokenProvider.resolveToken(request);
         String userName = jwtTokenProvider.getUserName(accessToken);
+        Long userId = jwtTokenProvider.getUserId(accessToken);
+        String role = jwtTokenProvider.getRole(accessToken);
         String email = authentication.getName();
-        String newAccessToken = jwtTokenProvider.generateAccessToken(email, userName, authentication.getAuthorities());
-        return newAccessToken;
+        return jwtTokenProvider.generateAccessToken(userId, email, userName, role, authentication.getAuthorities());
     }
 
     /**

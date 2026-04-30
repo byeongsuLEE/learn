@@ -49,6 +49,27 @@ public class AllExceptionHandler {
                 .body(ApiResponse.error(errorCode.getStatus(), errorCode.getMessage(),errorCode));
     }
 
+    @ExceptionHandler(ChatRoomNotFoundException.class)
+    public ResponseEntity<ApiResponse<String>> handleChatRoomNotFoundException(ChatRoomNotFoundException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.error(errorCode.getStatus(), errorCode.getMessage(), errorCode));
+    }
+
+    @ExceptionHandler(ChatRoomForbiddenException.class)
+    public ResponseEntity<ApiResponse<String>> handleChatRoomForbiddenException(ChatRoomForbiddenException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.error(errorCode.getStatus(), errorCode.getMessage(), errorCode));
+    }
+
+    @ExceptionHandler(ChatMessageNotFoundException.class)
+    public ResponseEntity<ApiResponse<String>> handleChatMessageNotFoundException(ChatMessageNotFoundException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.error(errorCode.getStatus(), errorCode.getMessage(), errorCode));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<String>> handleException(RuntimeException runtimeException) {
         ErrorCode errorCode = ErrorCode.RuntimeException_ERROR;

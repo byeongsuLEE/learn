@@ -25,7 +25,13 @@ public enum ErrorCode {
     UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 JWT 오류가 발생했습니다"),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 리프레시 토큰입니다"),
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "토큰이 존재하지 않습니다"),
-    BLACKLISTED_TOKEN(HttpStatus.UNAUTHORIZED, "사용이 금지된 토큰입니다");
+    BLACKLISTED_TOKEN(HttpStatus.UNAUTHORIZED, "사용이 금지된 토큰입니다"),
+
+    // Chat 관련
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 채팅방을 찾을 수 없습니다"),
+    CHAT_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 메시지를 찾을 수 없습니다"),
+    CHAT_ROOM_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 채팅방에 접근 권한이 없습니다"),
+    CHAT_DUPLICATE_ROOM(HttpStatus.CONFLICT, "이미 존재하는 채팅방입니다");
 
     private HttpStatus status;
     private String message;

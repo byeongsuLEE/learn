@@ -44,7 +44,7 @@ public class JwtTokenProvider {
     }
 
 
-    public String generateAccessToken(String email, String name, Collection<? extends GrantedAuthority> authorities) {
+    public String generateAccessToken(Long userId, String email, String name, String role, Collection<? extends GrantedAuthority> authorities) {
         Date now = new Date();
         Date expireTime = new Date(now.getTime() + jwtProperties.getAccessExpirationTime());
 
@@ -52,16 +52,16 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        String accessToken = Jwts.builder()
+        return Jwts.builder()
                 .setSubject(email)
+                .claim("userId", userId)
                 .claim("auth", authoritiesString)
                 .claim("name", name)
-                .setIssuedAt(now) // 발생 시간
-                .setExpiration(expireTime) // 만료 일
-                .signWith(key)   // 서명 키
+                .claim("role", role)
+                .setIssuedAt(now)
+                .setExpiration(expireTime)
+                .signWith(key)
                 .compact();
-
-        return accessToken;
     }
 
     public String generateRefreshToken(String email) {
@@ -85,20 +85,34 @@ public class JwtTokenProvider {
      * @return Claims
      */
     public Claims parseClaims(String accessToken) {
-        try{
+        try {
             return Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(accessToken)
                     .getBody();
-        }catch (JwtException e) {
+        } catch (ExpiredJwtException e) {
+            return e.getClaims();
+        } catch (JwtException e) {
             throw new JwtException(ErrorCode.EXPIRED_TOKEN.getMessage());
         }
     }
 
     public String getUserName(String token) {
         Claims claims = parseClaims(token);
-        return claims.get("name", String.class); // JWT 토큰에서 사용자 유형을 추출
+        return claims.get("name", String.class);
+    }
+
+    public Long getUserId(String token) {
+        Claims claims = parseClaims(token);
+        Object userId = claims.get("userId");
+        if (userId == null) return null;
+        return ((Number) userId).longValue();
+    }
+
+    public String getRole(String token) {
+        Claims claims = parseClaims(token);
+        return claims.get("role", String.class);
     }
 
     public Authentication getAuthentication(String token) {
