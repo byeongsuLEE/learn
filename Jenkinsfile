@@ -186,10 +186,10 @@ pipeline {
                             echo '🚀 UserService 배포 시작...'
                             sh """
                                 # UserService 컨테이너 중지
-                                docker-compose -f ${COMPOSE_FILE} stop user || true
+                                docker compose -f ${COMPOSE_FILE} stop user || true
 
                                 # 기존 컨테이너 제거
-                                docker-compose -f ${COMPOSE_FILE} rm -f user || true
+                                docker compose -f ${COMPOSE_FILE} rm -f user || true
 
                                 # 기존 이미지 제거
                                 docker rmi ${DOCKER_REGISTRY}/user:latest || true
@@ -197,12 +197,12 @@ pipeline {
                                 # 새 이미지 pull
                                 docker pull ${DOCKER_REGISTRY}/user:latest
 
-                                docker-compose -f ${COMPOSE_FILE} up -d user
+                                docker compose -f ${COMPOSE_FILE} up -d user
 
                                 # 컨테이너 상태 확인
                                 sleep 10
 
-                                docker-compose -f ${COMPOSE_FILE} ps user
+                                docker compose -f ${COMPOSE_FILE} ps user
                             """
                             echo '✅ UserService 배포 완료!'
                         }
@@ -263,10 +263,10 @@ pipeline {
                             echo '🚀 Gateway 배포 시작...'
                             sh """
                                 # Gateway 컨테이너 중지
-                                docker-compose -f ${COMPOSE_FILE} stop gateway || true
+                                docker compose -f ${COMPOSE_FILE} stop gateway || true
 
                                 # 기존 컨테이너 제거
-                                docker-compose -f ${COMPOSE_FILE} rm -f gateway || true
+                                docker compose -f ${COMPOSE_FILE} rm -f gateway || true
 
                                 # 기존 이미지 제거
                                 docker rmi ${DOCKER_REGISTRY}/gateway:latest || true
@@ -275,11 +275,11 @@ pipeline {
                                 docker pull ${DOCKER_REGISTRY}/gateway:latest
 
                                 # Gateway 컨테이너 시작
-                                docker-compose -f ${COMPOSE_FILE} up -d gateway
+                                docker compose -f ${COMPOSE_FILE} up -d gateway
 
                                 # 컨테이너 상태 확인
                                 sleep 10
-                                docker-compose -f ${COMPOSE_FILE} ps gateway
+                                docker compose -f ${COMPOSE_FILE} ps gateway
                             """
                             echo '✅ Gateway 배포 완료!'
                         }
@@ -379,7 +379,7 @@ pipeline {
 
                     sh """
                         echo "=== 전체 Docker Compose 서비스 상태 ==="
-                        docker-compose -f ${COMPOSE_FILE} ps
+                        docker compose -f ${COMPOSE_FILE} ps
                         echo ""
                     """
 
@@ -394,10 +394,10 @@ pipeline {
                         if (dockerService) {
                             sh """
                                 echo "=== ${service} (${dockerService}) 상세 정보 ==="
-                                docker-compose -f ${COMPOSE_FILE} ps ${dockerService}
+                                docker compose -f ${COMPOSE_FILE} ps ${dockerService}
                                 echo ""
                                 echo "--- ${service} 최근 로그 (20줄) ---"
-                                docker-compose -f ${COMPOSE_FILE} logs --tail=20 ${dockerService} || true
+                                docker compose -f ${COMPOSE_FILE} logs --tail=20 ${dockerService} || true
                                 echo ""
                             """
                         }
@@ -487,7 +487,7 @@ pipeline {
                     docker ps -a
 
                     echo "=== Docker Compose 상태 ==="
-                    docker-compose -f /home/lbs/docker-compose-back.yml ps
+                    docker compose -f /home/lbs/docker-compose.yml ps
 
                     echo "=== 최근 시스템 로그 ==="
                     docker system df
@@ -517,8 +517,8 @@ def cleanupFailedService(String serviceName) {
         if (dockerService) {
             sh """
                 # 실패한 컨테이너 중지 및 제거
-                docker-compose -f ${COMPOSE_FILE} stop ${dockerService} || true
-                docker-compose -f ${COMPOSE_FILE} rm -f ${dockerService} || true
+                docker compose -f ${COMPOSE_FILE} stop ${dockerService} || true
+                docker compose -f ${COMPOSE_FILE} rm -f ${dockerService} || true
 
                 # 실패한 이미지 제거 (현재 배포 시도한 이미지)
                 docker rmi ${DOCKER_REGISTRY}/${dockerService}:latest || true
