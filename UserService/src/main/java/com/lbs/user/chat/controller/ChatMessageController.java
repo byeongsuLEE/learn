@@ -50,7 +50,7 @@ public class ChatMessageController {
         ChatMessage saved = chatMessageService.saveMessage(roomId, senderId, senderType, request);
         ChatMessageResponseDto response = chatMessageMapper.domainToResponseDto(saved);
 
-        messagingTemplate.convertAndSend("/sub/chat/rooms/" + roomId, response);
+        messagingTemplate.convertAndSend("/topic/chat.rooms." + roomId, response);
         log.info("Message sent to room {}: senderId={}, type={}", roomId, senderId, request.getMessageType());
     }
 }

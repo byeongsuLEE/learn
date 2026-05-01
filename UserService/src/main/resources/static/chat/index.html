@@ -117,7 +117,7 @@ function connect() {
         onConnect: () => {
             setStatus(true);
             log('STOMP 연결 성공');
-            client.subscribe('/sub/chat/rooms/' + roomId, msg => {
+            client.subscribe('/topic/chat.rooms.' + roomId, msg => {
                 const body = JSON.parse(msg.body);
                 log('수신: ' + JSON.stringify(body), 'msg-in');
             });
