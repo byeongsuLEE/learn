@@ -40,7 +40,7 @@ dependencies {
 
     // WebSocket + STOMP
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    runtimeOnly 'io.projectreactor.netty:reactor-netty-core'
+    implementation 'io.projectreactor.netty:reactor-netty-http'
 
     // MinIO
     implementation 'io.minio:minio:8.5.7'
