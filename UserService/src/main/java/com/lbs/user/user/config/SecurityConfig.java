@@ -60,7 +60,7 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login","/logout","/logout/dsafdsfdsd").permitAll()
+                        .requestMatchers("/login", "/logout", "/logout/dsafdsfdsd", "/auth/token").permitAll()
 //                        .anyRequest().authenticated()
                                 .anyRequest().permitAll()
                 )

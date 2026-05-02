@@ -11,13 +11,17 @@ import com.lbs.user.user.dto.request.UserJoinRequestDto;
 import com.lbs.user.user.service.UserService;
 import com.lbs.user.user.service.UserSettingService;
 import io.micrometer.core.annotation.Timed;
-import jakarta.ws.rs.PUT;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -117,5 +121,42 @@ public class UserController {
                 .body(ApiResponse.success(HttpStatus.OK,userSettingResponseDto));
     }
 
+    /**
+     * OAuth2 로그인 성공 후 프론트 콜백 페이지가 호출하는 토큰 교환 엔드포인트.
+     * HttpOnly 쿠키에서 JWT를 읽어 JSON으로 반환하고 쿠키를 즉시 삭제한다.
+     * 이후 API 요청은 Authorization: Bearer 헤더를 사용한다.
+     */
+    @GetMapping("/auth/token")
+    public ResponseEntity<ApiResponse<java.util.Map<String, String>>> exchangeOAuthToken(
+            HttpServletRequest request, HttpServletResponse response) {
+
+        String token = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("oauth_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error(HttpStatus.UNAUTHORIZED, "OAuth 토큰이 없습니다", null));
+        }
+
+        // 쿠키 즉시 만료 (교환 후 재사용 방지)
+        ResponseCookie deleteCookie = ResponseCookie.from("oauth_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK, "토큰 발급 성공", java.util.Map.of("token", token)));
+    }
 
 }
