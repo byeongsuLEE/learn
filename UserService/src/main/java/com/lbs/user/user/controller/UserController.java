@@ -142,7 +142,7 @@ public class UserController {
 
         if (token == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error(HttpStatus.UNAUTHORIZED, "OAuth 토큰이 없습니다", null));
+                    .body(ApiResponse.success(HttpStatus.UNAUTHORIZED, "OAuth 토큰이 없습니다", null));
         }
 
         // 쿠키 즉시 만료 (교환 후 재사용 방지)
