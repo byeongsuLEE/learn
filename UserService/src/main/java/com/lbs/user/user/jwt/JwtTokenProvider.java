@@ -127,7 +127,7 @@ public class JwtTokenProvider {
                     .collect(Collectors.toList());
         }
 
-        User user = new User(userEmail, null, authorityList);
+        User user = new User(userEmail, "", authorityList);
         return new UsernamePasswordAuthenticationToken(user, null, authorityList);
 
     }

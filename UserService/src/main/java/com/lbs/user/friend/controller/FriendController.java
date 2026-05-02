@@ -20,7 +20,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/user_friend")
+@RequestMapping("/friends")
 @RequiredArgsConstructor
 public class FriendController {
 
@@ -28,10 +28,10 @@ public class FriendController {
 
 
     //나의 친구 리스트 보여주기
-    @GetMapping("/{my_user_id}")
-    public ResponseEntity<ApiResponse<List<FriendResponseDto>>> getFriends(@PathVariable("my_user_id") Long my_user_id) {
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<FriendResponseDto>>> getFriends(@RequestParam("userId") Long userId) {
 
-        List<Friend> friends = friendService.getFriends(my_user_id);
+        List<Friend> friends = friendService.getFriends(userId);
         List<FriendResponseDto> friendResponseDtoList  = friends.stream()
                 .map((f) -> f.mapToResponseDto(f))
                 .toList();
