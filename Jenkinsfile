@@ -9,6 +9,21 @@ pipeline {
     }
 
     stages {
+        stage('Setup Docker Compose') {
+            steps {
+                sh '''
+                    docker compose version 2>/dev/null || (
+                        mkdir -p /usr/local/lib/docker/cli-plugins
+                        curl -sL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 \
+                            -o /usr/local/lib/docker/cli-plugins/docker-compose
+                        chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+                        echo "Docker Compose installed"
+                    )
+                    docker compose version
+                '''
+            }
+        }
+
         stage('Git Clone') {
             steps {
                 echo '📦 GitHub에서 learn 코드 가져오는 중...'
