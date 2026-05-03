@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'Java17'
+    }
+
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
         DOCKER_REGISTRY = 'evil55'
@@ -149,21 +153,16 @@ pipeline {
                         dir('UserService') {
                             echo '🔨 UserService Gradle 빌드 시작...'
                             script {
-                                // withCredentials 블록을 이 단계에만 유지
                                 withCredentials([file(credentialsId: 'GCPStorageKey', variable: 'GCP_KEY_FILE')]) {
-                                    // 이 부분은 그대로 유지
                                     sh '''
                                           chmod +x gradlew
-                                          # GCP 키 파일을 안정적인 임시 위치로 복사합니다.
                                           mkdir -p /tmp/jenkins-credentials
                                           cp ${GCP_KEY_FILE} /tmp/jenkins-credentials/gcp-key.json
 
-                                          # 빌드 및 테스트를 실행하며, -D 옵션으로 안정적인 경로를 전달합니다.
                                           ./gradlew clean bootJar -x test -x asciidoctor -Dspring.profiles.active=prod -Dgoogle.cloud.storage.credentials.location=/tmp/jenkins-credentials/gcp-key.json
                                           echo "빌드된 JAR 파일 확인:"
                                         ls -la build/libs/
                                     '''
-
                                 }
                             }
                             echo '✅ UserService 빌드 완료!'
@@ -239,7 +238,7 @@ pipeline {
                             echo '🔨 Gateway Gradle 빌드 시작...'
                             sh '''
                                 chmod +x gradlew
-                                ./gradlew clean build
+                                ./gradlew clean build -x test
                                 echo "빌드된 JAR 파일 확인:"
                                 ls -la build/libs/
                             '''
