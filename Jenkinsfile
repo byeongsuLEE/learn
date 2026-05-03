@@ -316,8 +316,8 @@ pipeline {
 
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceHealthMap = [
-                        'UserService': 'http://evil55.cloud/api/user-service/actuator/health',
-                        'GatewayService': 'http://evil55.cloud:8000/actuator/health'
+                        'UserService': 'http://user:8081/api/user-service/actuator/health',
+                        'GatewayService': 'http://gateway:8000/actuator/health'
                     ]
 
                     def failedServices = []
