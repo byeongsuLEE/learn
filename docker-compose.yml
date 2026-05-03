@@ -1,0 +1,358 @@
+services:
+  # Infrastructure Services
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - mynet
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - ./zookeeper_data:/var/lib/zookeeper/data
+      - ./zookeeper_log:/var/lib/zookeeper/log
+
+
+  kafka-connect:
+    build: .
+    container_name: kafka-connect
+    ports:
+      - "8083:8083"
+    networks:
+      - mynet
+    environment:
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_BOOTSTRAP_SERVERS: "kafka:29092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+    depends_on:
+      - kafka
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - mynet
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://evil55.cloud:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./kafka_data:/var/lib/kafka/data
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8989:8080"
+    networks:
+      - mynet
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+      - KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME=my-connect
+      - KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS=http://kafka-connect:8083
+    depends_on:
+      - kafka
+
+  # Config Server
+  config-server:
+    image: evil55/config:latest
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - mynet
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_KAFKA_CONSUMER_GROUP_ID=config-server-bus-group
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${CONFIG_GIT_PASSWORD}
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL=master
+    depends_on:
+      - kafka
+
+  # Eureka Discovery Server
+  discovery:
+    image: evil55/discovery
+    container_name: discovery
+    ports:
+      - "8761:8761"
+    networks:
+      - mynet
+    environment:
+      - SERVER_PORT=8761
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery:8761/eureka
+    depends_on:
+      - config-server
+
+  # Gateway Service
+  gateway:
+    image: evil55/gateway
+    container_name: gateway
+    ports:
+      - "8000:8000"
+    networks:
+      - mynet
+    environment:
+      - SERVER_PORT=8000
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery:8761/eureka
+      - ENCRYPT_KEY=870184220903798506eff26cff8831deb7a956e607b93c7add90a1029cdab14
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_DATA_MONGODB_URI=mongodb://chatuser:1710chat@mongodb:27017/chat?authSource=chat
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=lbs
+      - SPRING_RABBITMQ_PASSWORD=1710rabbit
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=learn
+      - MINIO_SECRET_KEY=1710minio
+      - MINIO_BUCKET=chat-images
+      - CHAT_BROKER_HOST=rabbitmq
+      - CHAT_BROKER_PORT=61613
+      - CHAT_BROKER_LOGIN=lbs
+      - CHAT_BROKER_PASSCODE=1710rabbit
+      - SPRING_CODEC_MAX_IN_MEMORY_SIZE=524288000
+      - SPRING_CLOUD_GATEWAY_HTTPCLIENT_CONNECT_TIMEOUT=10000
+      - SPRING_CLOUD_GATEWAY_HTTPCLIENT_RESPONSE_TIMEOUT=60s
+    depends_on:
+      - discovery
+
+  # User Service
+  # 앱 설정은 Config Server(learn-user-prod.yml)에서 관리
+  # docker-compose는 bootstrap 필수값만 유지
+  user:
+    image: evil55/user
+    container_name: user
+    ports:
+      - "8081:8081"
+    networks:
+      - mynet
+    extra_hosts:
+      - "evil55.cloud:host-gateway"
+    environment:
+      - SERVER_PORT=8081
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery:8761/eureka
+      - ENCRYPT_KEY=870184220903798506eff26cff8831deb7a956e607b93c7add90a1029cdab14
+      - SPRING_PROFILES_ACTIVE=prod
+      - GOOGLE_CREDENTIALS_LOCATION=/etc/gcp/gcp-key.json
+      - google_cloud_storage_credentials_location=/etc/gcp/gcp-key.json
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    depends_on:
+      - gateway
+      - discovery
+    volumes:
+      - /home/lbs/gcp/GCPStorageKey.json:/etc/gcp/gcp-key.json
+      - /tmp/jenkins-credentials:/etc/gcp
+
+  # Frontend - next.js
+  front:
+    image: evil55/frontend
+    container_name: front
+    ports:
+      - "3000:3000"
+    networks:
+      - mynet
+    extra_hosts:
+      - "evil55.cloud:host-gateway"
+    environment:
+      - NEXT_PUBLIC_API_URL=https://evil55.cloud/api/user-service
+    depends_on:
+      - gateway
+      - user
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    networks:
+      - mynet
+    depends_on:
+      - user
+      - gateway
+      - front
+    extra_hosts:
+      - "evil55.cloud:host-gateway"
+    environment:
+      - TZ=Asia/Seoul
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - mynet
+
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    container_name: jenkins
+    restart: unless-stopped
+    ports:
+      - "9090:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - /home/lbs:/home/lbs
+    networks:
+      - mynet
+    extra_hosts:
+      - "evil55.cloud:host-gateway"
+    user: root
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus_data:/prometheus
+    networks:
+      - mynet
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - mynet
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    networks:
+      - mynet
+    environment:
+      - MYSQL_ROOT_PASSWORD=evil55
+      - MYSQL_DATABASE=learn
+      - MYSQL_USER=evil55
+      - MYSQL_PASSWORD=a980523!@12
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+  batch-mysql:
+    image: mysql:8.0
+    container_name: batch-mysql
+    restart: always
+    ports:
+      - "3307:3306"
+    networks:
+      - mynet
+    environment:
+      - MYSQL_ROOT_PASSWORD=evil55
+      - MYSQL_DATABASE=learn
+      - MYSQL_USER=evil55
+      - MYSQL_PASSWORD=1710
+    volumes:
+      - ./batch_data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - mynet
+    command: redis-server --requirepass 1710
+    volumes:
+      - ./redis_data:/data
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - mynet
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=1710
+      - MONGO_INITDB_DATABASE=chat
+    volumes:
+      - ./mongodb_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "61613:61613"
+    networks:
+      - mynet
+    environment:
+      - RABBITMQ_DEFAULT_USER=learn
+      - RABBITMQ_DEFAULT_PASS=1710
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_stomp &&
+             rabbitmq-server"
+    volumes:
+      - ./rabbitmq_data:/var/lib/rabbitmq
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - mynet
+    environment:
+      - MINIO_ROOT_USER=learn
+      - MINIO_ROOT_PASSWORD=1710minio
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./minio_data:/data
+
+volumes:
+  jenkins_home:
+    driver: local
+  influxdb_data:
+    driver: local
+
+networks:
+  mynet:
+    external: true
