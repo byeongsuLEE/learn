@@ -13,7 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 
-// jenkins test
+// jenkins test 1
 @SpringBootApplication
 @EnableDiscoveryClient
 public class UserServiceApplication {
