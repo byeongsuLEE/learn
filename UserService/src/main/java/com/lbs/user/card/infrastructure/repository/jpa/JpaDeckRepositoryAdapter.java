@@ -159,6 +159,13 @@ public class JpaDeckRepositoryAdapter implements DeckRepository {
         return cardId;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Slice<DeckResponseDto> findByCategory(String category, Pageable pageable) {
+        Slice<DeckEntity> slice = jpaDeckRepository.findAllByCategory(category, pageable);
+        return slice.map(deckMapper::entityToResponseDto);
+    }
+
    @Override
     public void setDeckCardCount(){
 

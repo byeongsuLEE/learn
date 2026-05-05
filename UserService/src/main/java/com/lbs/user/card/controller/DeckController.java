@@ -119,6 +119,14 @@ public class DeckController {
                 .body(ApiResponse.success(HttpStatus.OK,"card 등록 완료했습니다." , cardResponseDto));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Slice<DeckResponseDto>>> searchByCategory(
+            @RequestParam String category, Pageable pageable) {
+        Slice<DeckResponseDto> result = deckService.searchByCategory(category, pageable);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(HttpStatus.OK, "검색 성공", result));
+    }
+
     @PostMapping("/{id}/transaction-rollback-test-with-error")
     public ResponseEntity<ApiResponse<String>> transactionRollbackTestWithError(
             @PathVariable("id") Long id,

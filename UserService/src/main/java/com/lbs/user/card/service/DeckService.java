@@ -3,7 +3,10 @@ package com.lbs.user.card.service;
 import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
 import com.lbs.user.card.dto.request.CreateCardRequestDto;
+import com.lbs.user.card.dto.response.DeckResponseDto;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
@@ -17,6 +20,8 @@ public interface DeckService {
     Card createCard(Card card);
     Long deleteCard(Long id, Long cardId);
 //    List<Deck> readPageDecks(PageRequest pageRequest);
-public Deck updateCardCountWithTransactionTest(Long id, int newCardCount, boolean causeError);
+    Deck updateCardCountWithTransactionTest(Long id, int newCardCount, boolean causeError);
+
+    Slice<DeckResponseDto> searchByCategory(String category, Pageable pageable);
 
 }

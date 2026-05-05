@@ -26,5 +26,7 @@ public interface DeckRepository {
     void setDeckCardCount();
     void updateCardCount();
 
+    Slice<DeckResponseDto> findByCategory(String category, Pageable pageable);
+
 }
 
