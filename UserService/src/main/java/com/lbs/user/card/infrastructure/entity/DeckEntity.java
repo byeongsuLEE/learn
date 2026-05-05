@@ -22,7 +22,9 @@ import java.util.stream.Collectors;
 
 @Entity
 @Getter
-@Table(name = "decks")
+@Table(name = "decks", indexes = {
+    @Index(name = "idx_category_created_date", columnList = "category, created_date DESC")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeckEntity extends BaseEntity {
 
