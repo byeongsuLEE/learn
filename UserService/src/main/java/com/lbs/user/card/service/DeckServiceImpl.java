@@ -2,12 +2,16 @@ package com.lbs.user.card.service;
 
 import com.lbs.user.card.domain.Card;
 import com.lbs.user.card.domain.Deck;
+import com.lbs.user.card.dto.response.DeckResponseDto;
 import com.lbs.user.card.infrastructure.repository.DeckRepository;
 import com.lbs.user.common.exception.DeckNotFoundException;
 import com.lbs.user.common.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -71,5 +75,11 @@ public class DeckServiceImpl implements DeckService {
 
         deckRepository.updateCardCount();
         return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Slice<DeckResponseDto> searchByCategory(String category, Pageable pageable) {
+        return deckRepository.findByCategory(category, pageable);
     }
 }
