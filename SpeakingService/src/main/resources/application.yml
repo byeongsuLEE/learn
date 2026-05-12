@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: learn-speaking
+  config:
+    import: optional:configserver:http://evil55.cloud:8888
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+    import: optional:configserver:http://config-server:8888
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - refresh
+          - health
+          - info
+          - bus-refresh
+          - metrics
+          - prometheus
