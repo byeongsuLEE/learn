@@ -29,6 +29,11 @@ spring:
             preLogger: true
             postLogger: true
       routes:
+        - id: user-service-websocket
+          order: -1
+          uri: ${USER_SERVICE_WS_URI:ws://localhost:8081}
+          predicates:
+            - Path=/api/user-service/ws-chat
         - id: user-service
 #          uri: http://localhost:8081/
           uri: lb://USER-SERVICE      # discovery에 등록된 app name
@@ -48,6 +53,12 @@ spring:
           predicates:
             - Path=/api/order-service/**
 
+        - id: speaking-service
+          uri: lb://SPEAKING-SERVICE
+          predicates:
+            - Path=/api/speaking-service/**
+          filters:
+            - StripPrefix=2
 
         - id: board-service
           uri: http://localhost:8082/
@@ -72,6 +83,8 @@ management:
           - info
           - metrics
           - prometheus
+
+
 
 
 ## 유레카 서버에 현재 프로젝트를 등록

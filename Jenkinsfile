@@ -68,7 +68,8 @@ pipeline {
                     def changedServices = []
                     def serviceMap = [
                         'UserService': 'user',
-                        'GatewayService': 'gateway'
+                        'GatewayService': 'gateway',
+                        'SpeakingService': 'speaking'
                     ]
 
                     // Git diff로 변경된 파일들 확인
@@ -302,6 +303,66 @@ pipeline {
             }
         }
 
+        stage('SpeakingService Deploy') {
+            when {
+                expression {
+                    return env.CHANGED_SERVICES?.contains('SpeakingService')
+                }
+            }
+            stages {
+                stage('SpeakingService Build') {
+                    steps {
+                        dir('SpeakingService') {
+                            echo 'SpeakingService Gradle build...'
+                            sh '''
+                                chmod +x gradlew
+                                ./gradlew clean bootJar -x test
+                                ls -la build/libs/
+                            '''
+                            echo 'SpeakingService build complete.'
+                        }
+                    }
+                }
+
+                stage('SpeakingService Docker Build & Push') {
+                    steps {
+                        dir('SpeakingService') {
+                            script {
+                                def imageTag = "${env.BUILD_NUMBER}"
+                                def imageName = "${DOCKER_REGISTRY}/speaking:${imageTag}"
+                                def latestImageName = "${DOCKER_REGISTRY}/speaking:latest"
+
+                                sh "docker build -t ${imageName} -t ${latestImageName} ."
+
+                                sh '''
+                                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                                '''
+                                sh "docker push ${imageName}"
+                                sh "docker push ${latestImageName}"
+                            }
+                        }
+                    }
+                }
+
+                stage('SpeakingService Deploy') {
+                    steps {
+                        script {
+                            sh """
+                                docker compose -f ${COMPOSE_FILE} stop speaking || true
+                                docker compose -f ${COMPOSE_FILE} rm -f speaking || true
+                                docker rmi ${DOCKER_REGISTRY}/speaking:latest || true
+                                docker pull ${DOCKER_REGISTRY}/speaking:latest
+                                docker compose -f ${COMPOSE_FILE} up -d speaking
+                                sleep 10
+                                docker compose -f ${COMPOSE_FILE} ps speaking
+                            """
+                            echo 'SpeakingService deploy complete.'
+                        }
+                    }
+                }
+            }
+        }
+
         // 헬스체크 스테이지 - 배포된 서비스가 있을 때만 실행
         stage('Health Check') {
             when {
@@ -317,7 +378,8 @@ pipeline {
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceHealthMap = [
                         'UserService': 'http://user:8081/api/user-service/actuator/health',
-                        'GatewayService': 'http://gateway:8000/actuator/health'
+                        'GatewayService': 'http://gateway:8000/actuator/health',
+                        'SpeakingService': 'http://speaking:8083/actuator/health'
                     ]
 
                     def failedServices = []
@@ -400,7 +462,8 @@ pipeline {
                     def services = env.CHANGED_SERVICES.split(',')
                     def serviceMap = [
                         'UserService': 'user',
-                        'GatewayService': 'gateway'
+                        'GatewayService': 'gateway',
+                        'SpeakingService': 'speaking'
                     ]
 
                     services.each { service ->
@@ -524,7 +587,8 @@ def cleanupFailedService(String serviceName) {
 
         def serviceMap = [
             'UserService': 'user',
-            'GatewayService': 'gateway'
+            'GatewayService': 'gateway',
+            'SpeakingService': 'speaking'
         ]
 
         def dockerService = serviceMap[serviceName]
