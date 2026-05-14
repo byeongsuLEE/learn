@@ -10,4 +10,12 @@ public interface QuestionJpaRepository extends JpaRepository<QuestionEntity, Lon
     List<QuestionEntity> findByActiveTrueAndIdNotIn(Collection<Long> excludedIds);
 
     List<QuestionEntity> findByActiveTrue();
+
+    List<QuestionEntity> findByActiveTrueAndCategory_Name(String categoryName);
+
+    List<QuestionEntity> findByActiveTrueAndCategory_NameAndIdNotIn(String categoryName, Collection<Long> excludedIds);
+
+    List<QuestionEntity> findByActiveTrueAndCategory_NameNot(String categoryName);
+
+    List<QuestionEntity> findByActiveTrueAndCategory_NameNotAndIdNotIn(String categoryName, Collection<Long> excludedIds);
 }

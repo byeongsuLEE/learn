@@ -48,11 +48,11 @@ public class JpaChatRoomRepositoryAdapter implements ChatRoomRepository {
     @Override
     @Transactional(readOnly = true)
     public Page<ChatRoom> findAllByUser(Long userId, Role role, Pageable pageable) {
-        if (role == Role.PARENT) {
-            return jpaChatRoomRepository.findAllByParentIdOrderByLastMessageAtDesc(userId, pageable)
+        if (role == Role.ADMIN) {
+            return jpaChatRoomRepository.findAllByOrderByLastMessageAtDesc(pageable)
                     .map(chatRoomMapper::entityToDomain);
         }
-        return jpaChatRoomRepository.findAllByAcademyIdOrderByLastMessageAtDesc(userId, pageable)
+        return jpaChatRoomRepository.findAllByAcademyIdOrParentIdOrderByLastMessageAtDesc(userId, userId, pageable)
                 .map(chatRoomMapper::entityToDomain);
     }
 

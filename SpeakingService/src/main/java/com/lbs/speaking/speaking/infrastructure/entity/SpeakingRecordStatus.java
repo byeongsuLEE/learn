@@ -4,5 +4,6 @@ public enum SpeakingRecordStatus {
     PENDING_ANALYSIS,
     ANALYZING,
     COMPLETED,
+    RECORDED,
     FAILED
 }

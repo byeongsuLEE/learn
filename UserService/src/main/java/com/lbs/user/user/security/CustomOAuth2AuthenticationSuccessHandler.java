@@ -49,7 +49,7 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
         var authorities = user.getRoles().stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
-        String primaryRole = user.getRoles().isEmpty() ? "PARENT" : user.getRoles().get(0);
+        String primaryRole = user.getRoles().isEmpty() ? "ROLE_USER" : user.getRoles().get(0);
 
         String token = jwtTokenProvider.generateAccessToken(
                 user.getId(), user.getEmail(), user.getName(), primaryRole, authorities);

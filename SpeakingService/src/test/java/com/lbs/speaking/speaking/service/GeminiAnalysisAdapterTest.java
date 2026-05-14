@@ -32,7 +32,7 @@ class GeminiAnalysisAdapterTest {
                         true,
                         "https://generativelanguage.googleapis.com",
                         " ",
-                        "gemini-2.5-flash",
+                        "gemini-2.5-flash-lite",
                         30
                 )),
                 mock(GeminiPromptBuilder.class),

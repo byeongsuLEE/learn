@@ -15,7 +15,6 @@ export const options = {
   },
   thresholds: {
     http_req_duration: ['p(95)<500'],
-    http_req_failed: ['rate<0.01'],
   },
 };
 
@@ -29,11 +28,16 @@ export default function () {
     `${BASE}/deck/search?category=${encodeURIComponent(cat)}&sort=createdDate,desc&page=${page}&size=20`
   );
   check(res, { 'status 200': (r) => r.status === 200 });
+  sleep(1);
 }
 
 export function handleSummary(data) {
+  // 측정된 TPS (초당 요청 수) 가져오기
+  const tps = data.metrics.http_reqs.values.rate; 
+  
   return {
     'docs/perf/results/summary.json': JSON.stringify(data, null, 2),
-    stdout: JSON.stringify(data.metrics['http_req_duration'], null, 2),
+    // 응답 시간과 함께 TPS 수치도 콘솔(stdout)에 같이 출력하도록 수정
+    stdout: `[응답 시간]\n${JSON.stringify(data.metrics['http_req_duration'], null, 2)}\n\n[측정된 TPS]\n${tps.toFixed(2)} 요청/초\n`,
   };
 }

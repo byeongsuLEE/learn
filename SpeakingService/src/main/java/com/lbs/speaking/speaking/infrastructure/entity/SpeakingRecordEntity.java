@@ -42,9 +42,16 @@ public class SpeakingRecordEntity extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "daily_question_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "daily_question_id")
     private DailyQuestionEntity dailyQuestion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "record_type", nullable = false, length = 30)
+    private SpeakingRecordType recordType;
+
+    @Column(name = "prompt_text", columnDefinition = "TEXT")
+    private String promptText;
 
     @Column(name = "object_key", nullable = false, length = 500)
     private String objectKey;
@@ -75,6 +82,7 @@ public class SpeakingRecordEntity extends BaseEntity {
                                  String originalText, String mimeType, long sizeBytes, int durationSec) {
         this.userId = userId;
         this.dailyQuestion = dailyQuestion;
+        this.recordType = SpeakingRecordType.QUESTION_ANALYSIS;
         this.objectKey = objectKey;
         this.originalText = originalText;
         this.mimeType = mimeType;
@@ -89,6 +97,16 @@ public class SpeakingRecordEntity extends BaseEntity {
         return new SpeakingRecordEntity(userId, dailyQuestion, objectKey, originalText, mimeType, sizeBytes, durationSec);
     }
 
+    public static SpeakingRecordEntity createRecordedCustomText(Long userId, String promptText, String objectKey,
+                                                                String originalText, String mimeType, long sizeBytes,
+                                                                int durationSec) {
+        SpeakingRecordEntity record = new SpeakingRecordEntity(userId, null, objectKey, originalText, mimeType, sizeBytes, durationSec);
+        record.recordType = SpeakingRecordType.CUSTOM_TEXT;
+        record.promptText = promptText;
+        record.status = SpeakingRecordStatus.RECORDED;
+        return record;
+    }
+
     public void markAnalyzing(String permanentObjectKey) {
         this.objectKey = permanentObjectKey;
         this.status = SpeakingRecordStatus.ANALYZING;
@@ -97,6 +115,12 @@ public class SpeakingRecordEntity extends BaseEntity {
 
     public void markCompleted() {
         this.status = SpeakingRecordStatus.COMPLETED;
+        this.failureReason = null;
+    }
+
+    public void markRecorded(String permanentObjectKey) {
+        this.objectKey = permanentObjectKey;
+        this.status = SpeakingRecordStatus.RECORDED;
         this.failureReason = null;
     }
 
@@ -111,5 +135,9 @@ public class SpeakingRecordEntity extends BaseEntity {
 
     public boolean belongsTo(Long userId) {
         return this.userId.equals(userId);
+    }
+
+    public boolean isQuestionAnalysis() {
+        return recordType == SpeakingRecordType.QUESTION_ANALYSIS && dailyQuestion != null;
     }
 }

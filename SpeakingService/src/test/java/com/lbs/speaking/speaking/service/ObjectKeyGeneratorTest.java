@@ -16,12 +16,19 @@ class ObjectKeyGeneratorTest {
             List.of("audio/webm"),
             new SpeakingProperties.Rabbit("exchange", "queue", "routing", "dlx", "dlq", "dlq-routing"),
             new SpeakingProperties.Jobs("0 */5 * * * *", "0 0 * * * *", 15, 24),
-            new SpeakingProperties.Gemini(false, "https://generativelanguage.googleapis.com", "", "gemini-2.5-flash", 30)
+            new SpeakingProperties.Gemini(false, "https://generativelanguage.googleapis.com", "", "gemini-2.5-flash-lite", 30)
     ));
 
     @Test
     void createsTempObjectKey() {
         String key = generator.tempKey(10L, "upload-1", "audio/webm");
+
+        assertThat(key).isEqualTo("speaking/temp/10/upload-1.webm");
+    }
+
+    @Test
+    void normalizesCodecMimeTypeWhenCreatingTempObjectKey() {
+        String key = generator.tempKey(10L, "upload-1", "audio/webm;codecs=opus");
 
         assertThat(key).isEqualTo("speaking/temp/10/upload-1.webm");
     }

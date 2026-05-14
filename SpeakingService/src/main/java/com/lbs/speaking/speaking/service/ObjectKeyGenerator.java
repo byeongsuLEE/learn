@@ -25,7 +25,8 @@ public class ObjectKeyGenerator {
     }
 
     private String extension(String mimeType) {
-        return switch (mimeType.toLowerCase(Locale.ROOT)) {
+        String normalized = mimeType == null ? "" : mimeType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
+        return switch (normalized) {
             case "audio/webm" -> "webm";
             case "audio/mp4" -> "mp4";
             case "audio/ogg" -> "ogg";

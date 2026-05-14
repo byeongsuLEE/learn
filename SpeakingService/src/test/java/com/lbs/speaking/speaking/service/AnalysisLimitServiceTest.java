@@ -15,19 +15,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
-class ReanalysisLimitServiceTest {
+class AnalysisLimitServiceTest {
 
     private final StringRedisTemplate redisTemplate = mock(StringRedisTemplate.class);
     private final ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
-    private final ReanalysisLimitService limitService = new ReanalysisLimitService(redisTemplate);
+    private final AnalysisLimitService limitService = new AnalysisLimitService(redisTemplate);
 
     @Test
-    void incrementsDailyCounterAndSetsTtlOnFirstAttempt() {
-        String key = "speaking:reanalyze:2:10:2026-05-12";
+    void incrementsDailyCounterByUserAndSetsTtlOnFirstAttempt() {
+        String key = "speaking:analysis:2:2026-05-12";
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.increment(key)).thenReturn(1L);
 
-        int attempt = limitService.acquire(2L, 10L, LocalDate.of(2026, 5, 12));
+        int attempt = limitService.acquire(2L, LocalDate.of(2026, 5, 12));
 
         assertThat(attempt).isEqualTo(1);
         verify(redisTemplate).expire(key, Duration.ofDays(2));
@@ -35,23 +35,23 @@ class ReanalysisLimitServiceTest {
 
     @Test
     void throwsWhenDailyLimitIsExceeded() {
-        String key = "speaking:reanalyze:2:10:2026-05-12";
+        String key = "speaking:analysis:2:2026-05-12";
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.increment(key)).thenReturn(6L);
 
-        assertThatThrownBy(() -> limitService.acquire(2L, 10L, LocalDate.of(2026, 5, 12)))
+        assertThatThrownBy(() -> limitService.acquire(2L, LocalDate.of(2026, 5, 12)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.REANALYZE_LIMIT_EXCEEDED);
+                .isEqualTo(ErrorCode.ANALYSIS_LIMIT_EXCEEDED);
     }
 
     @Test
     void allowsFifthAttemptWithoutResettingTtl() {
-        String key = "speaking:reanalyze:2:10:2026-05-12";
+        String key = "speaking:analysis:2:2026-05-12";
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.increment(key)).thenReturn(5L);
 
-        int attempt = limitService.acquire(2L, 10L, LocalDate.of(2026, 5, 12));
+        int attempt = limitService.acquire(2L, LocalDate.of(2026, 5, 12));
 
         assertThat(attempt).isEqualTo(5);
         verify(redisTemplate, never()).expire(key, Duration.ofDays(2));
@@ -59,11 +59,11 @@ class ReanalysisLimitServiceTest {
 
     @Test
     void treatsNullIncrementResultAsFirstAttempt() {
-        String key = "speaking:reanalyze:2:10:2026-05-12";
+        String key = "speaking:analysis:2:2026-05-12";
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.increment(key)).thenReturn(null);
 
-        int attempt = limitService.acquire(2L, 10L, LocalDate.of(2026, 5, 12));
+        int attempt = limitService.acquire(2L, LocalDate.of(2026, 5, 12));
 
         assertThat(attempt).isEqualTo(1);
         verify(redisTemplate, never()).expire(key, Duration.ofDays(2));

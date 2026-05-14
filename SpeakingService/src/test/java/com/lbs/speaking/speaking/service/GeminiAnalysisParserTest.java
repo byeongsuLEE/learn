@@ -18,6 +18,13 @@ class GeminiAnalysisParserTest {
                 Sure. Here is the JSON:
                 {
                   "improvedText": "I go to school every morning.",
+                  "feedback": {
+                    "overallScore": 86,
+                    "overallComment": "답변의 핵심이 잘 드러나요.",
+                    "metrics": [
+                      {"key": "fluency", "label": "유창성", "score": 86, "comment": "흐름이 자연스러워요."}
+                    ]
+                  },
                   "issues": [
                     {
                       "type": "GRAMMAR",
@@ -43,6 +50,8 @@ class GeminiAnalysisParserTest {
         assertThat(result.issues()).hasSize(1);
         assertThat(result.issues().get(0).suggestion()).isEqualTo("go to school");
         assertThat(result.renderBlocks()).hasSize(2);
+        assertThat(result.feedback().overallScore()).isEqualTo(86);
+        assertThat(result.feedback().metrics().get(0).label()).isEqualTo("유창성");
     }
 
     @Test

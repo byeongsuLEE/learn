@@ -30,6 +30,11 @@ public class SpeakingController {
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, speakingRecordService.getTodayQuestion()));
     }
 
+    @GetMapping("/interview/today")
+    public ResponseEntity<ApiResponse<SpeakingDtos.TodayQuestionResponse>> getInterviewQuestion() {
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, speakingRecordService.getInterviewQuestion()));
+    }
+
     @PostMapping("/uploads/presigned-url")
     public ResponseEntity<ApiResponse<SpeakingDtos.PresignedUploadResponse>> createUploadUrl(
             @RequestHeader(value = "Authorization", required = false) String authorization,
@@ -37,6 +42,15 @@ public class SpeakingController {
     ) {
         Long userId = jwtTokenProvider.resolveUserId(authorization);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, speakingRecordService.createUploadUrl(userId, request)));
+    }
+
+    @PostMapping("/custom/uploads/presigned-url")
+    public ResponseEntity<ApiResponse<SpeakingDtos.PresignedUploadResponse>> createCustomUploadUrl(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @Valid @RequestBody SpeakingDtos.PresignedUploadRequest request
+    ) {
+        Long userId = jwtTokenProvider.resolveUserId(authorization);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, speakingRecordService.createCustomUploadUrl(userId, request)));
     }
 
     @PostMapping("/records")
@@ -47,6 +61,16 @@ public class SpeakingController {
         Long userId = jwtTokenProvider.resolveUserId(authorization);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED, "Record created.", speakingRecordService.createRecord(userId, request)));
+    }
+
+    @PostMapping("/custom/records")
+    public ResponseEntity<ApiResponse<SpeakingDtos.RecordResponse>> createCustomRecord(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @Valid @RequestBody SpeakingDtos.CreateCustomRecordRequest request
+    ) {
+        Long userId = jwtTokenProvider.resolveUserId(authorization);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(HttpStatus.CREATED, "Record created.", speakingRecordService.createCustomRecord(userId, request)));
     }
 
     @GetMapping("/records/{recordId}/progress")

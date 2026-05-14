@@ -41,10 +41,10 @@ public class ChatMessageController {
 
         String[] parts = principal.getName().split(":");
         Long senderId = Long.parseLong(parts[0]);
-        String roleStr = parts.length > 1 ? parts[1] : "PARENT";
-        SenderType senderType = "ACADEMY".equalsIgnoreCase(roleStr) ? SenderType.ACADEMY : SenderType.PARENT;
+        String roleStr = parts.length > 1 ? parts[1] : "USER";
+        Role role = normalizeRole(roleStr);
+        SenderType senderType = toSenderType(role);
 
-        Role role = Role.valueOf(roleStr.toUpperCase());
         chatRoomService.getRoomForUser(roomId, senderId, role);
 
         ChatMessage saved = chatMessageService.saveMessage(roomId, senderId, senderType, request);
@@ -52,5 +52,22 @@ public class ChatMessageController {
 
         messagingTemplate.convertAndSend("/topic/chat.rooms." + roomId, response);
         log.info("Message sent to room {}: senderId={}, type={}", roomId, senderId, request.getMessageType());
+    }
+
+    private Role normalizeRole(String role) {
+        if ("USER".equalsIgnoreCase(role) || "ROLE_USER".equalsIgnoreCase(role)) {
+            return Role.USER;
+        }
+        if ("ADMIN".equalsIgnoreCase(role) || "ROLE_ADMIN".equalsIgnoreCase(role)) {
+            return Role.ADMIN;
+        }
+        return Role.USER;
+    }
+
+    private SenderType toSenderType(Role role) {
+        if (role == Role.ADMIN) {
+            return SenderType.ADMIN;
+        }
+        return SenderType.USER;
     }
 }

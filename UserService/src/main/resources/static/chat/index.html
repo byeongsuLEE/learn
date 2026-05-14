@@ -55,8 +55,8 @@
     <input id="user-id" value="1" type="number" />
     <label>Role</label>
     <select id="user-role">
-        <option value="PARENT">PARENT</option>
-        <option value="ACADEMY">ACADEMY</option>
+        <option value="USER">USER</option>
+        <option value="ADMIN">ADMIN</option>
     </select>
     <div style="margin-bottom:8px;">
         <button class="btn-primary" onclick="createRoom()">채팅방 생성/조회</button>
@@ -156,8 +156,8 @@ async function createRoom() {
     const userId = document.getElementById('user-id').value;
     const role = document.getElementById('user-role').value;
     const roomId = document.getElementById('room-id').value;
-    const academyId = role === 'ACADEMY' ? userId : roomId;
-    const parentId  = role === 'PARENT'  ? userId : roomId;
+    const academyId = roomId;
+    const parentId  = userId;
     const res = await fetch(apiBase() + '/api/user-service/chat/rooms/create', {
         method: 'POST', headers: authHeader(),
         body: JSON.stringify({ academyId: parseInt(academyId), parentId: parseInt(parentId) })

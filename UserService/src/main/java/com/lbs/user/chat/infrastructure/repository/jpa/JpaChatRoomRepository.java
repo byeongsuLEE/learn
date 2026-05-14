@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface JpaChatRoomRepository extends JpaRepository<ChatRoomEntity, Long> {
     Optional<ChatRoomEntity> findByAcademyIdAndParentId(Long academyId, Long parentId);
+    Page<ChatRoomEntity> findAllByOrderByLastMessageAtDesc(Pageable pageable);
+    Page<ChatRoomEntity> findAllByAcademyIdOrParentIdOrderByLastMessageAtDesc(Long academyId, Long parentId, Pageable pageable);
     Page<ChatRoomEntity> findAllByParentIdOrderByLastMessageAtDesc(Long parentId, Pageable pageable);
     Page<ChatRoomEntity> findAllByAcademyIdOrderByLastMessageAtDesc(Long academyId, Pageable pageable);
 }

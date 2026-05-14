@@ -41,21 +41,36 @@ public class AnalysisEntity extends BaseEntity {
     @Column(name = "render_blocks_json", nullable = false, columnDefinition = "JSON")
     private String renderBlocksJson;
 
-    private AnalysisEntity(SpeakingRecordEntity record, String improvedText, String issuesJson, String renderBlocksJson) {
+    @Column(name = "feedback_json", columnDefinition = "JSON")
+    private String feedbackJson;
+
+    private AnalysisEntity(SpeakingRecordEntity record, String improvedText, String issuesJson, String renderBlocksJson,
+                           String feedbackJson) {
         this.record = record;
         this.improvedText = improvedText;
         this.issuesJson = issuesJson;
         this.renderBlocksJson = renderBlocksJson;
+        this.feedbackJson = feedbackJson;
     }
 
     public static AnalysisEntity create(SpeakingRecordEntity record, String improvedText, String issuesJson,
                                         String renderBlocksJson) {
-        return new AnalysisEntity(record, improvedText, issuesJson, renderBlocksJson);
+        return new AnalysisEntity(record, improvedText, issuesJson, renderBlocksJson, "{}");
+    }
+
+    public static AnalysisEntity create(SpeakingRecordEntity record, String improvedText, String issuesJson,
+                                        String renderBlocksJson, String feedbackJson) {
+        return new AnalysisEntity(record, improvedText, issuesJson, renderBlocksJson, feedbackJson);
     }
 
     public void replace(String improvedText, String issuesJson, String renderBlocksJson) {
+        replace(improvedText, issuesJson, renderBlocksJson, "{}");
+    }
+
+    public void replace(String improvedText, String issuesJson, String renderBlocksJson, String feedbackJson) {
         this.improvedText = improvedText;
         this.issuesJson = issuesJson;
         this.renderBlocksJson = renderBlocksJson;
+        this.feedbackJson = feedbackJson;
     }
 }
