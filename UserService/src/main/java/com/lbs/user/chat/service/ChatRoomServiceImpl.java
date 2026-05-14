@@ -42,9 +42,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     public ChatRoom getRoomForUser(Long roomId, Long userId, Role role) {
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatRoomNotFoundException(ErrorCode.CHAT_ROOM_NOT_FOUND));
-        boolean isParticipant = role == Role.PARENT
-                ? room.getParentId().equals(userId)
-                : room.getAcademyId().equals(userId);
+        boolean isParticipant = switch (role) {
+            case USER -> room.getParentId().equals(userId) || room.getAcademyId().equals(userId);
+            case ADMIN -> true;
+        };
         if (!isParticipant) {
             throw new ChatRoomForbiddenException(ErrorCode.CHAT_ROOM_FORBIDDEN);
         }

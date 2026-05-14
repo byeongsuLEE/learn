@@ -9,6 +9,8 @@ import com.lbs.speaking.speaking.infrastructure.entity.AnalysisEntity;
 import com.lbs.speaking.speaking.infrastructure.entity.DailyQuestionEntity;
 import com.lbs.speaking.speaking.infrastructure.entity.SpeakingRecordEntity;
 import com.lbs.speaking.speaking.infrastructure.entity.SpeakingRecordStatus;
+import com.lbs.speaking.speaking.infrastructure.entity.SpeakingQuestionType;
+import com.lbs.speaking.speaking.infrastructure.entity.SpeakingRecordType;
 import com.lbs.speaking.speaking.infrastructure.repository.AnalysisJpaRepository;
 import com.lbs.speaking.speaking.infrastructure.repository.DailyQuestionJpaRepository;
 import com.lbs.speaking.speaking.infrastructure.repository.SpeakingRecordJpaRepository;
@@ -16,6 +18,7 @@ import com.lbs.speaking.speaking.worker.AnalysisPublisher;
 import com.lbs.speaking.speaking.worker.AnalysisRequestedEvent;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -37,29 +40,60 @@ public class SpeakingRecordService {
     private final ObjectKeyGenerator objectKeyGenerator;
     private final ProgressService progressService;
     private final AnalysisPublisher analysisPublisher;
-    private final ReanalysisLimitService reanalysisLimitService;
+    private final AnalysisLimitService analysisLimitService;
 
     @Transactional
     public SpeakingDtos.TodayQuestionResponse getTodayQuestion() {
-        DailyQuestionEntity dailyQuestion = todayQuestionService.getOrCreateTodayQuestion();
+        return getQuestion(SpeakingQuestionType.DAILY);
+    }
+
+    @Transactional
+    public SpeakingDtos.TodayQuestionResponse getInterviewQuestion() {
+        return getQuestion(SpeakingQuestionType.INTERVIEW);
+    }
+
+    private SpeakingDtos.TodayQuestionResponse getQuestion(SpeakingQuestionType questionType) {
+        DailyQuestionEntity dailyQuestion = todayQuestionService.getOrCreateTodayQuestion(questionType);
         return new SpeakingDtos.TodayQuestionResponse(
                 dailyQuestion.getId(),
                 dailyQuestion.getQuestionDate(),
                 dailyQuestion.getQuestion().getId(),
-                dailyQuestion.getQuestion().getContent()
+                dailyQuestion.getQuestion().getContent(),
+                dailyQuestion.getQuestionType()
         );
     }
 
     @Transactional
     public SpeakingDtos.PresignedUploadResponse createUploadUrl(Long userId,
                                                                 SpeakingDtos.PresignedUploadRequest request) {
-        validateAudio(request.mimeType(), request.sizeBytes(), request.durationSec());
-        DailyQuestionEntity dailyQuestion = todayQuestionService.getOrCreateTodayQuestion();
+        String mimeType = normalizeMimeType(request.mimeType());
+        validateAudio(mimeType, request.sizeBytes(), request.durationSec());
+        DailyQuestionEntity dailyQuestion = todayQuestionService.getOrCreateTodayQuestion(resolveQuestionType(request));
 
         String uploadId = UUID.randomUUID().toString();
-        String objectKey = objectKeyGenerator.tempKey(userId, uploadId, request.mimeType());
+        String objectKey = objectKeyGenerator.tempKey(userId, uploadId, mimeType);
         uploadSessionService.create(uploadId, userId, dailyQuestion.getId(), objectKey,
-                request.mimeType(), request.sizeBytes(), request.durationSec());
+                mimeType, request.sizeBytes(), request.durationSec());
+
+        String uploadUrl = audioStorageService.createUploadUrl(objectKey);
+        return new SpeakingDtos.PresignedUploadResponse(
+                uploadId,
+                uploadUrl,
+                objectKey,
+                minioProperties.presignedPutExpiryMinutes() * 60
+        );
+    }
+
+    @Transactional
+    public SpeakingDtos.PresignedUploadResponse createCustomUploadUrl(Long userId,
+                                                                      SpeakingDtos.PresignedUploadRequest request) {
+        String mimeType = normalizeMimeType(request.mimeType());
+        validateAudio(mimeType, request.sizeBytes(), request.durationSec());
+
+        String uploadId = UUID.randomUUID().toString();
+        String objectKey = objectKeyGenerator.tempKey(userId, uploadId, mimeType);
+        uploadSessionService.create(uploadId, userId, null, objectKey,
+                mimeType, request.sizeBytes(), request.durationSec());
 
         String uploadUrl = audioStorageService.createUploadUrl(objectKey);
         return new SpeakingDtos.PresignedUploadResponse(
@@ -80,6 +114,7 @@ public class SpeakingRecordService {
         if (recordRepository.existsByUserIdAndDailyQuestionIdAndDeletedAtIsNull(userId, dailyQuestion.getId())) {
             throw new BusinessException(ErrorCode.DUPLICATE_DAILY_ANSWER);
         }
+        analysisLimitService.acquire(userId, LocalDate.now(properties.zoneId()));
 
         audioStorageService.assertExists(session.objectKey());
         SpeakingRecordEntity record = savePendingRecord(userId, dailyQuestion, request.transcript(), session);
@@ -92,7 +127,32 @@ public class SpeakingRecordService {
         record.markAnalyzing(permanentObjectKey);
         progressService.setProgress(record.getId(), 70);
         uploadSessionService.delete(session.uploadId());
-        analysisPublisher.publish(new AnalysisRequestedEvent(record.getId(), userId, 1));
+        analysisPublisher.publish(new AnalysisRequestedEvent(record.getId(), userId, 1, false));
+        return toRecordResponse(record);
+    }
+
+    @Transactional
+    public SpeakingDtos.RecordResponse createCustomRecord(Long userId, SpeakingDtos.CreateCustomRecordRequest request) {
+        UploadSession session = uploadSessionService.getRequired(request.uploadId());
+        validateSession(userId, request.objectKey(), session);
+
+        audioStorageService.assertExists(session.objectKey());
+        SpeakingRecordEntity record = recordRepository.save(SpeakingRecordEntity.createRecordedCustomText(
+                userId,
+                request.promptText(),
+                session.objectKey(),
+                request.transcript(),
+                session.mimeType(),
+                session.sizeBytes(),
+                session.durationSec()
+        ));
+
+        String permanentObjectKey = objectKeyGenerator.permanentKey(userId, record.getId(), session.mimeType());
+        audioStorageService.copy(session.objectKey(), permanentObjectKey);
+        audioStorageService.delete(session.objectKey());
+
+        record.markRecorded(permanentObjectKey);
+        uploadSessionService.delete(session.uploadId());
         return toRecordResponse(record);
     }
 
@@ -132,7 +192,8 @@ public class SpeakingRecordService {
                 .stream()
                 .map(record -> new SpeakingDtos.RecordListItemResponse(
                         record.getId(),
-                        record.getDailyQuestion().getQuestion().getContent(),
+                        questionText(record),
+                        record.getRecordType(),
                         record.getStatus(),
                         record.getCreatedAt()
                 ))
@@ -150,10 +211,10 @@ public class SpeakingRecordService {
     @Transactional
     public SpeakingDtos.RecordResponse reanalyze(Long userId, Long recordId) {
         SpeakingRecordEntity record = getOwnedRecord(userId, recordId);
-        int attempt = reanalysisLimitService.acquire(userId, recordId, LocalDate.now(properties.zoneId()));
+        analysisLimitService.acquire(userId, LocalDate.now(properties.zoneId()));
         record.markAnalyzing(record.getObjectKey());
         progressService.setProgress(record.getId(), 70);
-        analysisPublisher.publish(new AnalysisRequestedEvent(record.getId(), userId, attempt));
+        analysisPublisher.publish(new AnalysisRequestedEvent(record.getId(), userId, 1, true));
         return toRecordResponse(record);
     }
 
@@ -185,6 +246,17 @@ public class SpeakingRecordService {
         }
     }
 
+    private SpeakingQuestionType resolveQuestionType(SpeakingDtos.PresignedUploadRequest request) {
+        return request.questionType() == null ? SpeakingQuestionType.DAILY : request.questionType();
+    }
+
+    private String normalizeMimeType(String mimeType) {
+        if (mimeType == null) {
+            return "";
+        }
+        return mimeType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
+    }
+
     private void validateSession(Long userId, String objectKey, UploadSession session) {
         if (!session.userId().equals(userId) || !session.objectKey().equals(objectKey)) {
             throw new BusinessException(ErrorCode.INVALID_UPLOAD_SESSION);
@@ -196,20 +268,29 @@ public class SpeakingRecordService {
                 .map(entity -> new SpeakingDtos.AnalysisResponse(
                         entity.getImprovedText(),
                         entity.getIssuesJson(),
-                        entity.getRenderBlocksJson()
+                        entity.getRenderBlocksJson(),
+                        entity.getFeedbackJson()
                 ))
                 .orElse(null);
 
         return new SpeakingDtos.RecordResponse(
                 record.getId(),
-                record.getDailyQuestion().getId(),
-                record.getDailyQuestion().getQuestion().getContent(),
+                record.getDailyQuestion() == null ? null : record.getDailyQuestion().getId(),
+                questionText(record),
+                record.getRecordType(),
                 record.getOriginalText(),
                 record.getStatus(),
                 record.getFailureReason(),
                 record.getCreatedAt(),
                 analysis
         );
+    }
+
+    private String questionText(SpeakingRecordEntity record) {
+        if (record.getRecordType() == SpeakingRecordType.CUSTOM_TEXT) {
+            return record.getPromptText();
+        }
+        return record.getDailyQuestion().getQuestion().getContent();
     }
 
     private String progressMessage(SpeakingRecordStatus status, int progress) {

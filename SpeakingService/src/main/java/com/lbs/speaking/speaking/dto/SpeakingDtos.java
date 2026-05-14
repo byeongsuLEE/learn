@@ -1,6 +1,8 @@
 package com.lbs.speaking.speaking.dto;
 
 import com.lbs.speaking.speaking.infrastructure.entity.SpeakingRecordStatus;
+import com.lbs.speaking.speaking.infrastructure.entity.SpeakingRecordType;
+import com.lbs.speaking.speaking.infrastructure.entity.SpeakingQuestionType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -17,15 +19,23 @@ public final class SpeakingDtos {
             Long dailyQuestionId,
             LocalDate questionDate,
             Long questionId,
-            String content
+            String content,
+            SpeakingQuestionType questionType
     ) {
+        public TodayQuestionResponse(Long dailyQuestionId, LocalDate questionDate, Long questionId, String content) {
+            this(dailyQuestionId, questionDate, questionId, content, SpeakingQuestionType.DAILY);
+        }
     }
 
     public record PresignedUploadRequest(
             @NotBlank String mimeType,
             @Positive long sizeBytes,
-            @Positive int durationSec
+            @Positive int durationSec,
+            SpeakingQuestionType questionType
     ) {
+        public PresignedUploadRequest(String mimeType, long sizeBytes, int durationSec) {
+            this(mimeType, sizeBytes, durationSec, SpeakingQuestionType.DAILY);
+        }
     }
 
     public record PresignedUploadResponse(
@@ -43,6 +53,14 @@ public final class SpeakingDtos {
     ) {
     }
 
+    public record CreateCustomRecordRequest(
+            @NotBlank String uploadId,
+            @NotBlank String objectKey,
+            @NotBlank String promptText,
+            @NotBlank String transcript
+    ) {
+    }
+
     public record ProgressResponse(
             Long recordId,
             SpeakingRecordStatus status,
@@ -55,6 +73,7 @@ public final class SpeakingDtos {
             Long id,
             Long dailyQuestionId,
             String question,
+            SpeakingRecordType recordType,
             String originalText,
             SpeakingRecordStatus status,
             String failureReason,
@@ -66,6 +85,7 @@ public final class SpeakingDtos {
     public record RecordListItemResponse(
             Long id,
             String question,
+            SpeakingRecordType recordType,
             SpeakingRecordStatus status,
             LocalDateTime createdAt
     ) {
@@ -74,7 +94,8 @@ public final class SpeakingDtos {
     public record AnalysisResponse(
             String improvedText,
             String issuesJson,
-            String renderBlocksJson
+            String renderBlocksJson,
+            String feedbackJson
     ) {
     }
 

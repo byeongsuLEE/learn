@@ -32,7 +32,7 @@ public class ProgressService {
         return switch (status) {
             case PENDING_ANALYSIS -> 55;
             case ANALYZING -> 70;
-            case COMPLETED, FAILED -> 100;
+            case COMPLETED, RECORDED, FAILED -> 100;
         };
     }
 

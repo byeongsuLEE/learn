@@ -41,7 +41,7 @@ public class SpeakingJobs {
                     )
                     .stream()
                     .filter(record -> !analysisRepository.existsByRecordId(record.getId()))
-                    .forEach(record -> analysisPublisher.publish(new AnalysisRequestedEvent(record.getId(), record.getUserId(), 1)));
+                    .forEach(record -> analysisPublisher.publish(new AnalysisRequestedEvent(record.getId(), record.getUserId(), 1, false)));
         } finally {
             redisLockService.unlock(lockKey);
         }

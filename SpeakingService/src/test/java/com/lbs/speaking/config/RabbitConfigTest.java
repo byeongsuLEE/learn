@@ -31,7 +31,7 @@ class RabbitConfigTest {
                     "speaking.analysis.failed"
             ),
             new SpeakingProperties.Jobs("0 */10 * * * *", "0 0 * * * *", 15, 24),
-            new SpeakingProperties.Gemini(false, "https://generativelanguage.googleapis.com", "", "gemini-2.5-flash", 30)
+            new SpeakingProperties.Gemini(false, "https://generativelanguage.googleapis.com", "", "gemini-2.5-flash-lite", 30)
     );
 
     @Test

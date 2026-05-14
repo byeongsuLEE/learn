@@ -24,9 +24,17 @@ public class AnalysisProcessingService {
 
     @Transactional
     public void process(Long recordId) {
+        process(recordId, false);
+    }
+
+    @Transactional
+    public void process(Long recordId, boolean force) {
         SpeakingRecordEntity record = recordRepository.findByIdAndDeletedAtIsNull(recordId)
                 .orElseThrow();
-        if (record.getStatus() == SpeakingRecordStatus.COMPLETED) {
+        if (!record.isQuestionAnalysis()) {
+            return;
+        }
+        if (!force && record.getStatus() == SpeakingRecordStatus.COMPLETED) {
             return;
         }
 
@@ -39,8 +47,8 @@ public class AnalysisProcessingService {
 
         var correctedIssues = issueIndexCorrector.correct(record.getOriginalText(), result.issues());
         AnalysisEntity analysis = analysisRepository.findByRecordId(recordId)
-                .orElseGet(() -> AnalysisEntity.create(record, result.improvedText(), "[]", "[]"));
-        analysis.replace(result.improvedText(), toJson(correctedIssues), toJson(result.renderBlocks()));
+                .orElseGet(() -> AnalysisEntity.create(record, result.improvedText(), "[]", "[]", "{}"));
+        analysis.replace(result.improvedText(), toJson(correctedIssues), toJson(result.renderBlocks()), toJson(result.feedback()));
         analysisRepository.save(analysis);
         record.markCompleted();
         progressService.setProgress(recordId, 100);

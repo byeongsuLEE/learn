@@ -9,7 +9,8 @@ public interface LlmAnalysisPort {
     record LlmAnalysisResult(
             String improvedText,
             List<Issue> issues,
-            List<RenderBlock> renderBlocks
+            List<RenderBlock> renderBlocks,
+            Feedback feedback
     ) {
     }
 
@@ -29,6 +30,21 @@ public interface LlmAnalysisPort {
             String text,
             String color,
             Integer issueIndex
+    ) {
+    }
+
+    record Feedback(
+            int overallScore,
+            String overallComment,
+            List<Metric> metrics
+    ) {
+    }
+
+    record Metric(
+            String key,
+            String label,
+            int score,
+            String comment
     ) {
     }
 }

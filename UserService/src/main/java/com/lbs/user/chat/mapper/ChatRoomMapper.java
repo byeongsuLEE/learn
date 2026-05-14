@@ -33,8 +33,10 @@ public interface ChatRoomMapper {
     ChatRoomResponseDto domainToResponseDto(ChatRoom domain);
 
     default ChatRoomSummaryResponseDto toSummaryDto(ChatRoom chatRoom, Long requestUserId, Role role) {
-        Long counterpartId = role == Role.PARENT ? chatRoom.getAcademyId() : chatRoom.getParentId();
-        SenderType counterpartType = role == Role.PARENT ? SenderType.ACADEMY : SenderType.PARENT;
+        Long counterpartId = chatRoom.getParentId().equals(requestUserId)
+                ? chatRoom.getAcademyId()
+                : chatRoom.getParentId();
+        SenderType counterpartType = role == Role.ADMIN ? SenderType.ADMIN : SenderType.USER;
         return ChatRoomSummaryResponseDto.builder()
                 .roomId(chatRoom.getId())
                 .counterpartId(counterpartId)

@@ -51,10 +51,10 @@ public class ChatRoomController {
     @GetMapping("/rooms")
     public ResponseEntity<ApiResponse<ChatRoomPageResponseDto>> getMyRooms(
             @RequestParam Long userId,
-            @RequestParam(defaultValue = "PARENT") String role,
+            @RequestParam(defaultValue = "USER") String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Role userRole = Role.valueOf(role.toUpperCase());
+        Role userRole = normalizeRole(role);
         Page<ChatRoom> rooms = chatRoomService.getMyRooms(userId, userRole, PageRequest.of(page, size));
         List<ChatRoomSummaryResponseDto> content = rooms.getContent().stream()
                 .map(r -> chatRoomMapper.toSummaryDto(r, userId, userRole))
@@ -73,12 +73,12 @@ public class ChatRoomController {
     public ResponseEntity<ApiResponse<ChatMessagePageResponseDto>> getMessages(
             @PathVariable("room_id") Long roomId,
             @RequestParam Long userId,
-            @RequestParam(defaultValue = "PARENT") String role,
+            @RequestParam(defaultValue = "USER") String role,
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "30") int size) {
-        Role userRole = Role.valueOf(role.toUpperCase());
+        Role userRole = normalizeRole(role);
         chatRoomService.getRoomForUser(roomId, userId, userRole);
-        SenderType senderType = userRole == Role.PARENT ? SenderType.PARENT : SenderType.ACADEMY;
+        SenderType senderType = userRole == Role.ADMIN ? SenderType.ADMIN : SenderType.USER;
         ChatMessagePageResponseDto response = chatMessageService.getMessages(roomId, cursor, size, userId, senderType);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK, response));
@@ -92,5 +92,11 @@ public class ChatRoomController {
                 request.getFileType(), request.getRoomId(), userId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(HttpStatus.OK, "업로드 URL 발급 완료", response));
+    }
+    private Role normalizeRole(String role) {
+        if ("ADMIN".equalsIgnoreCase(role) || "ROLE_ADMIN".equalsIgnoreCase(role)) {
+            return Role.ADMIN;
+        }
+        return Role.USER;
     }
 }

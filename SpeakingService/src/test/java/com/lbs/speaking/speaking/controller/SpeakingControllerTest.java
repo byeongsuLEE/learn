@@ -17,6 +17,7 @@ import com.lbs.speaking.common.exception.BusinessException;
 import com.lbs.speaking.common.response.ErrorCode;
 import com.lbs.speaking.speaking.dto.SpeakingDtos;
 import com.lbs.speaking.speaking.infrastructure.entity.SpeakingRecordStatus;
+import com.lbs.speaking.speaking.infrastructure.entity.SpeakingRecordType;
 import com.lbs.speaking.speaking.service.SpeakingRecordService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -66,6 +67,24 @@ class SpeakingControllerTest {
                 .andExpect(jsonPath("$.data.dailyQuestionId").value(10))
                 .andExpect(jsonPath("$.data.questionId").value(20))
                 .andExpect(jsonPath("$.data.content").value("What did you learn today?"));
+    }
+
+    @Test
+    @DisplayName("GET /speaking/interview/today returns today's interview question")
+    void getInterviewQuestion() throws Exception {
+        given(speakingRecordService.getInterviewQuestion()).willReturn(new SpeakingDtos.TodayQuestionResponse(
+                11L,
+                LocalDate.of(2026, 5, 12),
+                21L,
+                "Tell me about yourself and your background.",
+                com.lbs.speaking.speaking.infrastructure.entity.SpeakingQuestionType.INTERVIEW
+        ));
+
+        mockMvc.perform(get("/speaking/interview/today"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.dailyQuestionId").value(11))
+                .andExpect(jsonPath("$.data.questionType").value("INTERVIEW"))
+                .andExpect(jsonPath("$.data.content").value("Tell me about yourself and your background."));
     }
 
     @Test
@@ -148,6 +167,31 @@ class SpeakingControllerTest {
     }
 
     @Test
+    @DisplayName("custom presigned upload response does not require a daily question")
+    void createCustomPresignedUploadUrl() throws Exception {
+        given(jwtTokenProvider.resolveUserId(AUTHORIZATION)).willReturn(USER_ID);
+        given(speakingRecordService.createCustomUploadUrl(eq(USER_ID), any()))
+                .willReturn(new SpeakingDtos.PresignedUploadResponse(
+                        "upload-custom-1",
+                        "https://evil55.cloud/speaking-audio/speaking/temp/7/upload-custom-1.webm",
+                        "speaking/temp/7/upload-custom-1.webm",
+                        600
+                ));
+
+        mockMvc.perform(post("/speaking/custom/uploads/presigned-url")
+                        .header("Authorization", AUTHORIZATION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new SpeakingDtos.PresignedUploadRequest(
+                                "audio/webm",
+                                1024,
+                                30
+                        ))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.uploadId").value("upload-custom-1"))
+                .andExpect(jsonPath("$.data.objectKey").value("speaking/temp/7/upload-custom-1.webm"));
+    }
+
+    @Test
     @DisplayName("record creation returns 201")
     void createRecord() throws Exception {
         given(jwtTokenProvider.resolveUserId(AUTHORIZATION)).willReturn(USER_ID);
@@ -169,6 +213,39 @@ class SpeakingControllerTest {
     }
 
     @Test
+    @DisplayName("custom record creation returns a recorded record without analysis")
+    void createCustomRecord() throws Exception {
+        given(jwtTokenProvider.resolveUserId(AUTHORIZATION)).willReturn(USER_ID);
+        given(speakingRecordService.createCustomRecord(eq(USER_ID), any()))
+                .willReturn(new SpeakingDtos.RecordResponse(
+                        2L,
+                        null,
+                        "내가 쓴 발표문",
+                        SpeakingRecordType.CUSTOM_TEXT,
+                        "내가 쓴 발표문",
+                        SpeakingRecordStatus.RECORDED,
+                        null,
+                        LocalDateTime.of(2026, 5, 12, 10, 0),
+                        null
+                ));
+
+        mockMvc.perform(post("/speaking/custom/records")
+                        .header("Authorization", AUTHORIZATION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new SpeakingDtos.CreateCustomRecordRequest(
+                                "upload-custom-1",
+                                "speaking/temp/7/upload-custom-1.webm",
+                                "내가 쓴 발표문",
+                                "내가 쓴 발표문"
+                        ))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.dailyQuestionId").doesNotExist())
+                .andExpect(jsonPath("$.data.recordType").value("CUSTOM_TEXT"))
+                .andExpect(jsonPath("$.data.status").value("RECORDED"))
+                .andExpect(jsonPath("$.data.analysis").doesNotExist());
+    }
+
+    @Test
     @DisplayName("duplicate daily answer returns 409")
     void duplicateDailyAnswer() throws Exception {
         given(jwtTokenProvider.resolveUserId(AUTHORIZATION)).willReturn(USER_ID);
@@ -185,6 +262,25 @@ class SpeakingControllerTest {
                         ))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("DUPLICATE_DAILY_ANSWER"));
+    }
+
+    @Test
+    @DisplayName("daily analysis limit returns 429")
+    void analysisLimitExceeded() throws Exception {
+        given(jwtTokenProvider.resolveUserId(AUTHORIZATION)).willReturn(USER_ID);
+        given(speakingRecordService.createRecord(eq(USER_ID), any()))
+                .willThrow(new BusinessException(ErrorCode.ANALYSIS_LIMIT_EXCEEDED));
+
+        mockMvc.perform(post("/speaking/records")
+                        .header("Authorization", AUTHORIZATION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new SpeakingDtos.CreateRecordRequest(
+                                "upload-1",
+                                "speaking/temp/7/upload-1.webm",
+                                "I already analyzed five times."
+                        ))))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.errorCode").value("ANALYSIS_LIMIT_EXCEEDED"));
     }
 
     @Test
@@ -247,6 +343,7 @@ class SpeakingControllerTest {
                 1L,
                 10L,
                 "What did you learn today?",
+                SpeakingRecordType.QUESTION_ANALYSIS,
                 "I learned queue based analysis today.",
                 status,
                 null,

@@ -22,7 +22,7 @@ class AnalysisWorkerTest {
 
         worker.handle(event, channel, 99L);
 
-        verify(processingService).process(10L);
+        verify(processingService).process(10L, false);
         verify(channel).basicAck(99L, false);
         verify(analysisPublisher, never()).publish(org.mockito.ArgumentMatchers.any());
     }
@@ -30,11 +30,11 @@ class AnalysisWorkerTest {
     @Test
     void republishesNextAttemptAndAcksOriginalMessageWhenProcessingFailsBelowLimit() throws Exception {
         AnalysisRequestedEvent event = new AnalysisRequestedEvent(10L, 2L, 2);
-        doThrow(new IllegalStateException("timeout")).when(processingService).process(10L);
+        doThrow(new IllegalStateException("timeout")).when(processingService).process(10L, false);
 
         worker.handle(event, channel, 99L);
 
-        verify(analysisPublisher).publish(new AnalysisRequestedEvent(10L, 2L, 3));
+        verify(analysisPublisher).publish(new AnalysisRequestedEvent(10L, 2L, 3, false));
         verify(processingService, never()).fail(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.any());
         verify(channel).basicAck(99L, false);
     }
@@ -42,7 +42,7 @@ class AnalysisWorkerTest {
     @Test
     void marksRecordFailedAndAcksOriginalMessageWhenRetryLimitIsReached() throws Exception {
         AnalysisRequestedEvent event = new AnalysisRequestedEvent(10L, 2L, 3);
-        doThrow(new IllegalStateException("timeout")).when(processingService).process(10L);
+        doThrow(new IllegalStateException("timeout")).when(processingService).process(10L, false);
 
         worker.handle(event, channel, 99L);
 

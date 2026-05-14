@@ -51,6 +51,32 @@ class AnalysisProcessingServiceTest {
     }
 
     @Test
+    void forceProcessReplacesExistingAnalysisEvenWhenRecordIsCompleted() {
+        SpeakingRecordEntity record = record(10L, SpeakingRecordStatus.COMPLETED);
+        AnalysisEntity existingAnalysis = AnalysisEntity.create(record, "old", "[]", "[]", "{}");
+        LlmAnalysisPort.RenderBlock block = new LlmAnalysisPort.RenderBlock("improved", "I went", "blue", 0);
+        LlmAnalysisPort.LlmAnalysisResult result = new LlmAnalysisPort.LlmAnalysisResult(
+                "I went home again.",
+                List.of(),
+                List.of(block),
+                new LlmAnalysisPort.Feedback(90, "좋아요.", List.of())
+        );
+        when(recordRepository.findByIdAndDeletedAtIsNull(10L)).thenReturn(Optional.of(record));
+        when(llmAnalysisPort.analyze("What did you do today?", "I go home.")).thenReturn(result);
+        when(issueIndexCorrector.correct("I go home.", result.issues())).thenReturn(List.of());
+        when(analysisRepository.findByRecordId(10L)).thenReturn(Optional.of(existingAnalysis));
+
+        processingService.process(10L, true);
+
+        assertThat(existingAnalysis.getImprovedText()).isEqualTo("I went home again.");
+        assertThat(record.getStatus()).isEqualTo(SpeakingRecordStatus.COMPLETED);
+        verify(analysisRepository).save(existingAnalysis);
+        verify(progressService).setProgress(10L, 70);
+        verify(progressService).setProgress(10L, 90);
+        verify(progressService).setProgress(10L, 100);
+    }
+
+    @Test
     void processSavesAnalysisAndMarksRecordCompleted() {
         SpeakingRecordEntity record = record(10L, SpeakingRecordStatus.ANALYZING);
         LlmAnalysisPort.Issue issue = new LlmAnalysisPort.Issue(
@@ -66,7 +92,12 @@ class AnalysisProcessingServiceTest {
         LlmAnalysisPort.LlmAnalysisResult result = new LlmAnalysisPort.LlmAnalysisResult(
                 "I went home.",
                 List.of(issue),
-                List.of(block)
+                List.of(block),
+                new LlmAnalysisPort.Feedback(
+                        88,
+                        "답변이 더 자연스러워졌어요.",
+                        List.of(new LlmAnalysisPort.Metric("fluency", "유창성", 88, "흐름이 좋아요."))
+                )
         );
         when(recordRepository.findByIdAndDeletedAtIsNull(10L)).thenReturn(Optional.of(record));
         when(llmAnalysisPort.analyze("What did you do today?", "I go home.")).thenReturn(result);
@@ -80,6 +111,7 @@ class AnalysisProcessingServiceTest {
         assertThat(analysisCaptor.getValue().getImprovedText()).isEqualTo("I went home.");
         assertThat(analysisCaptor.getValue().getIssuesJson()).contains("Past tense is needed.");
         assertThat(analysisCaptor.getValue().getRenderBlocksJson()).contains("improved");
+        assertThat(analysisCaptor.getValue().getFeedbackJson()).contains("유창성");
         assertThat(record.getStatus()).isEqualTo(SpeakingRecordStatus.COMPLETED);
         verify(progressService).setProgress(10L, 70);
         verify(progressService).setProgress(10L, 90);

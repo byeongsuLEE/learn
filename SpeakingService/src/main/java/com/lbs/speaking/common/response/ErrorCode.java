@@ -18,7 +18,7 @@ public enum ErrorCode {
     AUDIO_DURATION_EXCEEDED(HttpStatus.BAD_REQUEST, "Audio duration exceeds the allowed limit."),
     AUDIO_OBJECT_NOT_FOUND(HttpStatus.BAD_REQUEST, "Uploaded audio object was not found."),
     DUPLICATE_DAILY_ANSWER(HttpStatus.CONFLICT, "Daily question was already answered."),
-    REANALYZE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "Daily reanalysis limit exceeded."),
+    ANALYSIS_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "Daily analysis limit exceeded."),
     LLM_RESPONSE_PARSE_FAILED(HttpStatus.BAD_GATEWAY, "LLM response could not be parsed."),
     LLM_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "LLM request failed."),
     STORAGE_OPERATION_FAILED(HttpStatus.BAD_GATEWAY, "Object storage operation failed."),

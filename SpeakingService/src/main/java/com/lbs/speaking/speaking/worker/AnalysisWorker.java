@@ -26,12 +26,12 @@ public class AnalysisWorker {
     public void handle(AnalysisRequestedEvent event, Channel channel,
                        @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) throws Exception {
         try {
-            processingService.process(event.recordId());
+            processingService.process(event.recordId(), event.force());
             channel.basicAck(deliveryTag, false);
         } catch (Exception exception) {
             log.warn("Speaking analysis failed. recordId={}", event.recordId(), exception);
             if (event.attempt() < MAX_ATTEMPT) {
-                analysisPublisher.publish(new AnalysisRequestedEvent(event.recordId(), event.userId(), event.attempt() + 1));
+                analysisPublisher.publish(new AnalysisRequestedEvent(event.recordId(), event.userId(), event.attempt() + 1, event.force()));
             } else {
                 processingService.fail(event.recordId(), exception.getMessage());
             }
