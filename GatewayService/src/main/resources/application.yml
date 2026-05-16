@@ -11,6 +11,8 @@ spring:
           '[/**]':
             allowedOrigins:
               - "http://localhost:3000"
+              - "http://evil55.cloud"
+              - "https://evil55.cloud"
             allowedMethods:
               - GET
               - POST
