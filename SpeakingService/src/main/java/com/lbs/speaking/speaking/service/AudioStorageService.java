@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AudioStorageService {
 
+    private static final String DEFAULT_REGION = "us-east-1";
+
     private final MinioClient minioClient;
     private final MinioClient presignedMinioClient;
     private final MinioProperties properties;
@@ -41,6 +43,7 @@ public class AudioStorageService {
             return presignedMinioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .method(Method.PUT)
                     .bucket(properties.bucket())
+                    .region(DEFAULT_REGION)
                     .object(objectKey)
                     .expiry(properties.presignedPutExpiryMinutes(), TimeUnit.MINUTES)
                     .build());
@@ -54,6 +57,7 @@ public class AudioStorageService {
             return presignedMinioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .method(Method.GET)
                     .bucket(properties.bucket())
+                    .region(DEFAULT_REGION)
                     .object(objectKey)
                     .expiry(properties.presignedGetExpiryMinutes(), TimeUnit.MINUTES)
                     .build());
