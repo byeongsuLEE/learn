@@ -6,6 +6,8 @@ import com.lbs.speaking.config.SpeakingProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Component
 @RequiredArgsConstructor
@@ -15,6 +17,19 @@ public class AnalysisPublisher {
     private final SpeakingProperties properties;
 
     public void publish(AnalysisRequestedEvent event) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    send(event);
+                }
+            });
+            return;
+        }
+        send(event);
+    }
+
+    private void send(AnalysisRequestedEvent event) {
         try {
             rabbitTemplate.convertAndSend(
                     properties.rabbitmq().exchange(),
