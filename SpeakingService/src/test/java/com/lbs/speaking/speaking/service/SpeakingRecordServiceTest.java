@@ -65,7 +65,7 @@ class SpeakingRecordServiceTest {
         UploadSession session = session(5L);
         when(uploadSessionService.getRequired("upload-1")).thenReturn(session);
         when(dailyQuestionRepository.findById(5L)).thenReturn(Optional.of(dailyQuestion));
-        when(recordRepository.existsByUserIdAndDailyQuestionIdAndDeletedAtIsNull(2L, 5L)).thenReturn(false);
+        when(recordRepository.findByUserIdAndDailyQuestionIdAndDeletedAtIsNull(2L, 5L)).thenReturn(Optional.empty());
         when(recordRepository.save(any(SpeakingRecordEntity.class))).thenAnswer(invocation -> {
             SpeakingRecordEntity record = invocation.getArgument(0);
             ReflectionTestUtils.setField(record, "id", 10L);
@@ -83,6 +83,31 @@ class SpeakingRecordServiceTest {
         assertThat(response.status()).isEqualTo(SpeakingRecordStatus.ANALYZING);
         verify(analysisLimitService).acquire(eq(2L), any(LocalDate.class));
         verify(analysisPublisher).publish(new AnalysisRequestedEvent(10L, 2L, 1, false));
+    }
+
+    @Test
+    void createRecordReplacesExistingDailyRecordAndPublishesForceEvent() {
+        DailyQuestionEntity dailyQuestion = dailyQuestion();
+        UploadSession session = session(5L);
+        SpeakingRecordEntity existing = questionRecord(20L, SpeakingRecordStatus.COMPLETED);
+        when(uploadSessionService.getRequired("upload-1")).thenReturn(session);
+        when(dailyQuestionRepository.findById(5L)).thenReturn(Optional.of(dailyQuestion));
+        when(recordRepository.findByUserIdAndDailyQuestionIdAndDeletedAtIsNull(2L, 5L)).thenReturn(Optional.of(existing));
+        when(objectKeyGenerator.permanentKey(2L, 20L, "audio/webm")).thenReturn("speaking/audio/2/2026-05/20.webm");
+        when(analysisRepository.findByRecordId(20L)).thenReturn(Optional.empty());
+
+        SpeakingDtos.RecordResponse response = service.createRecord(2L, new SpeakingDtos.CreateRecordRequest(
+                "upload-1",
+                "speaking/temp/2/upload-1.webm",
+                "I recorded a better answer."
+        ));
+
+        assertThat(response.id()).isEqualTo(20L);
+        assertThat(response.originalText()).isEqualTo("I recorded a better answer.");
+        assertThat(response.status()).isEqualTo(SpeakingRecordStatus.ANALYZING);
+        verify(recordRepository, never()).save(any(SpeakingRecordEntity.class));
+        verify(analysisLimitService).acquire(eq(2L), any(LocalDate.class));
+        verify(analysisPublisher).publish(new AnalysisRequestedEvent(20L, 2L, 1, true));
     }
 
     @Test

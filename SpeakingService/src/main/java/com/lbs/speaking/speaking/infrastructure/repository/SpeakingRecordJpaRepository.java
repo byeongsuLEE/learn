@@ -12,6 +12,8 @@ public interface SpeakingRecordJpaRepository extends JpaRepository<SpeakingRecor
 
     boolean existsByUserIdAndDailyQuestionIdAndDeletedAtIsNull(Long userId, Long dailyQuestionId);
 
+    Optional<SpeakingRecordEntity> findByUserIdAndDailyQuestionIdAndDeletedAtIsNull(Long userId, Long dailyQuestionId);
+
     Optional<SpeakingRecordEntity> findByIdAndDeletedAtIsNull(Long id);
 
     List<SpeakingRecordEntity> findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long userId);

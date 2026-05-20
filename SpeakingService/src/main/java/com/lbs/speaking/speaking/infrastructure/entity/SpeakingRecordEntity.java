@@ -113,6 +113,17 @@ public class SpeakingRecordEntity extends BaseEntity {
         this.failureReason = null;
     }
 
+    public void replacePendingAnalysis(String objectKey, String originalText, String mimeType, long sizeBytes,
+                                       int durationSec) {
+        this.objectKey = objectKey;
+        this.originalText = originalText;
+        this.mimeType = mimeType;
+        this.sizeBytes = sizeBytes;
+        this.durationSec = durationSec;
+        this.status = SpeakingRecordStatus.PENDING_ANALYSIS;
+        this.failureReason = null;
+    }
+
     public void markCompleted() {
         this.status = SpeakingRecordStatus.COMPLETED;
         this.failureReason = null;

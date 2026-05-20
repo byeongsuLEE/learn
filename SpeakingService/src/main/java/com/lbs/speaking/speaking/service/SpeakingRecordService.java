@@ -111,13 +111,13 @@ public class SpeakingRecordService {
 
         DailyQuestionEntity dailyQuestion = dailyQuestionRepository.findById(session.dailyQuestionId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.TODAY_QUESTION_NOT_FOUND));
-        if (recordRepository.existsByUserIdAndDailyQuestionIdAndDeletedAtIsNull(userId, dailyQuestion.getId())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_DAILY_ANSWER);
-        }
+        var existingRecord = recordRepository.findByUserIdAndDailyQuestionIdAndDeletedAtIsNull(userId, dailyQuestion.getId());
         analysisLimitService.acquire(userId, LocalDate.now(properties.zoneId()));
 
         audioStorageService.assertExists(session.objectKey());
-        SpeakingRecordEntity record = savePendingRecord(userId, dailyQuestion, request.transcript(), session);
+        SpeakingRecordEntity record = existingRecord
+                .map(existing -> replaceExistingRecordForAnalysis(existing, request.transcript(), session))
+                .orElseGet(() -> savePendingRecord(userId, dailyQuestion, request.transcript(), session));
         progressService.setProgress(record.getId(), 55);
 
         String permanentObjectKey = objectKeyGenerator.permanentKey(userId, record.getId(), session.mimeType());
@@ -127,7 +127,7 @@ public class SpeakingRecordService {
         record.markAnalyzing(permanentObjectKey);
         progressService.setProgress(record.getId(), 70);
         uploadSessionService.delete(session.uploadId());
-        analysisPublisher.publish(new AnalysisRequestedEvent(record.getId(), userId, 1, false));
+        analysisPublisher.publish(new AnalysisRequestedEvent(record.getId(), userId, 1, existingRecord.isPresent()));
         return toRecordResponse(record);
     }
 
@@ -171,6 +171,18 @@ public class SpeakingRecordService {
         } catch (DataIntegrityViolationException exception) {
             throw new BusinessException(ErrorCode.DUPLICATE_DAILY_ANSWER, exception);
         }
+    }
+
+    private SpeakingRecordEntity replaceExistingRecordForAnalysis(SpeakingRecordEntity record, String transcript,
+                                                                  UploadSession session) {
+        record.replacePendingAnalysis(
+                session.objectKey(),
+                transcript,
+                session.mimeType(),
+                session.sizeBytes(),
+                session.durationSec()
+        );
+        return record;
     }
 
     @Transactional(readOnly = true)
