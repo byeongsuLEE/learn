@@ -37,8 +37,24 @@ class GeminiAnalysisParserTest {
                     }
                   ],
                   "renderBlocks": [
-                    {"kind": "original", "text": "go school", "color": "red", "issueIndex": 0},
-                    {"kind": "improved", "text": "go to school", "color": "blue", "issueIndex": 0}
+                    {
+                      "kind": "original",
+                      "text": "go school",
+                      "color": "red",
+                      "issueIndex": 0,
+                      "sentenceIndex": 0,
+                      "role": "original",
+                      "issueIndexes": [0]
+                    },
+                    {
+                      "kind": "improved",
+                      "text": "go to school",
+                      "color": "blue",
+                      "issueIndex": 0,
+                      "sentenceIndex": 0,
+                      "role": "improved",
+                      "issueIndexes": [0]
+                    }
                   ]
                 }
                 Thanks.
@@ -50,6 +66,9 @@ class GeminiAnalysisParserTest {
         assertThat(result.issues()).hasSize(1);
         assertThat(result.issues().get(0).suggestion()).isEqualTo("go to school");
         assertThat(result.renderBlocks()).hasSize(2);
+        assertThat(result.renderBlocks().get(0).sentenceIndex()).isEqualTo(0);
+        assertThat(result.renderBlocks().get(0).role()).isEqualTo("original");
+        assertThat(result.renderBlocks().get(0).issueIndexes()).containsExactly(0);
         assertThat(result.feedback().overallScore()).isEqualTo(86);
         assertThat(result.feedback().metrics().get(0).label()).isEqualTo("유창성");
     }

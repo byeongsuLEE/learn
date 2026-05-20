@@ -54,7 +54,7 @@ class AnalysisProcessingServiceTest {
     void forceProcessReplacesExistingAnalysisEvenWhenRecordIsCompleted() {
         SpeakingRecordEntity record = record(10L, SpeakingRecordStatus.COMPLETED);
         AnalysisEntity existingAnalysis = AnalysisEntity.create(record, "old", "[]", "[]", "{}");
-        LlmAnalysisPort.RenderBlock block = new LlmAnalysisPort.RenderBlock("improved", "I went", "blue", 0);
+        LlmAnalysisPort.RenderBlock block = new LlmAnalysisPort.RenderBlock("improved", "I went", "blue", 0, 0, "improved", List.of(0));
         LlmAnalysisPort.LlmAnalysisResult result = new LlmAnalysisPort.LlmAnalysisResult(
                 "I went home again.",
                 List.of(),
@@ -88,7 +88,7 @@ class AnalysisProcessingServiceTest {
                 "Past tense is needed.",
                 true
         );
-        LlmAnalysisPort.RenderBlock block = new LlmAnalysisPort.RenderBlock("improved", "I went", "blue", 0);
+        LlmAnalysisPort.RenderBlock block = new LlmAnalysisPort.RenderBlock("improved", "I went", "blue", 0, 0, "improved", List.of(0));
         LlmAnalysisPort.LlmAnalysisResult result = new LlmAnalysisPort.LlmAnalysisResult(
                 "I went home.",
                 List.of(issue),

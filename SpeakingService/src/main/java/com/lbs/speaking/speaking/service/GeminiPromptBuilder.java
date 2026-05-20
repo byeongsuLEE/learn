@@ -55,12 +55,19 @@ public class GeminiPromptBuilder {
             - explanation must be Korean.
 
             Rendering rules:
-            - renderBlocks are used by the frontend for red to blue correction rendering.
-            - Use red blocks for original phrases that should be improved.
-            - Use blue blocks for improved phrases.
+            - renderBlocks are used by the frontend for sentence-by-sentence red to blue correction rendering.
+            - Split the learner answer into sentence-sized units. Use sentenceIndex starting at 0.
+            - For each sentence that has a concrete improvement, output two visual rows:
+              1. role="original": the learner's original sentence, split into normal context blocks and red issue blocks.
+              2. role="improved": the improved sentence, split into normal context blocks and blue improvement blocks.
+            - Keep sentenceIndex the same for the original row and its improved row.
+            - Use red blocks only for exact original phrases that should be improved.
+            - Use blue blocks for the replacement or newly improved phrase in the improved sentence.
             - Use normal blocks for unchanged context.
-            - If an issue is not highlightable, do not create a red block for it.
-            - issueIndex must point to the related issue index when kind is original or improved.
+            - If an issue is not highlightable, do not create a red block for it, but still include the issue in issues.
+            - issueIndex must point to the main related issue index when kind is original or improved.
+            - issueIndexes must include every related issue index for that block. Use an empty array for normal context.
+            - If a sentence has no concrete issue, you may omit it from renderBlocks.
 
             Output rules:
             - Return only valid JSON.
@@ -100,7 +107,10 @@ public class GeminiPromptBuilder {
                   "kind": "original | improved | normal",
                   "text": "string",
                   "color": "red | blue | none",
-                  "issueIndex": 0
+                  "issueIndex": 0,
+                  "sentenceIndex": 0,
+                  "role": "original | improved",
+                  "issueIndexes": [0]
                 }
               ]
             }

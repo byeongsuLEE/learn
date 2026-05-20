@@ -29,8 +29,16 @@ public interface LlmAnalysisPort {
             String kind,
             String text,
             String color,
-            Integer issueIndex
+            Integer issueIndex,
+            Integer sentenceIndex,
+            String role,
+            List<Integer> issueIndexes
     ) {
+        public RenderBlock {
+            if (issueIndexes == null) {
+                issueIndexes = List.of();
+            }
+        }
     }
 
     record Feedback(
