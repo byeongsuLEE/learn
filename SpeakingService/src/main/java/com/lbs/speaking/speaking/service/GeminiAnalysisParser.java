@@ -41,7 +41,10 @@ public class GeminiAnalysisParser {
                                     block.kind(),
                                     block.text(),
                                     block.color(),
-                                    block.issueIndex()
+                                    block.issueIndex(),
+                                    block.sentenceIndex(),
+                                    block.role(),
+                                    block.issueIndexes()
                             ))
                             .toList(),
                     toFeedback(payload.feedback())
@@ -158,7 +161,10 @@ public class GeminiAnalysisParser {
             String kind,
             String text,
             String color,
-            Integer issueIndex
+            Integer issueIndex,
+            Integer sentenceIndex,
+            String role,
+            List<Integer> issueIndexes
     ) {
     }
 }

@@ -17,7 +17,7 @@ public class MockGeminiAnalysisAdapter implements LlmAnalysisPort {
         return new LlmAnalysisResult(
                 improved,
                 List.of(),
-                List.of(new RenderBlock("improved", improved, "blue", null)),
+                List.of(new RenderBlock("improved", improved, "blue", null, 0, "improved", List.of())),
                 new Feedback(
                         80,
                         "답변을 잘 완성했어요. 개선 답변을 보며 한 번 더 말해보세요.",

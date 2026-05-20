@@ -24,6 +24,10 @@ class GeminiPromptBuilderTest {
         assertThat(prompt).contains("relevance, label:");
         assertThat(prompt).contains("\"issues\"");
         assertThat(prompt).contains("\"renderBlocks\"");
+        assertThat(prompt).contains("\"sentenceIndex\"");
+        assertThat(prompt).contains("\"role\"");
+        assertThat(prompt).contains("\"issueIndexes\"");
+        assertThat(prompt).contains("sentence-by-sentence");
         assertThat(prompt).contains("red");
         assertThat(prompt).contains("blue");
         assertThat(prompt).contains(GeminiPromptBuilder.VARIABLE_INPUT_MARKER);
